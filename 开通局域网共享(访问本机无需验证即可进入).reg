@@ -1,0 +1,64 @@
+
+Windows Registry Editor Version 5.00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Control\Lsa]
+"restrictanonymous"=dword:00000000
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Lsa]
+"restrictanonymous"=dword:00000000
+; 以上两行在系统中的位置是：本地安全策略-安全选项-网络访问：不允许SAM帐户和共享
+; 的匿名枚举。系统默认值是：已停用。
+; 解说：操作系统默认:利用ipc$通道可以建立空连接,匿名枚举出该机有多少帐户。显然
+; 有一定的安全隐患。本系统已设为不允许空连接了。以此提高单机拨号上网的安全性。
+; 负面影响是局域网不能互访了。要更改一下才可以解决。
+
+
+
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Lsa]
+"limitblankpassworduse"=dword:00000000
+
+[HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Control\Lsa]
+"limitblankpassworduse"=dword:00000000
+; 以上两行在系统中的位置是：本地安全策略--安全选项--帐户：使用空白密码的本地帐户
+; 只允许进行控制台登录。系统默认值是：已启用。
+; 解说：很多人的帐户是不加密码的。这样，当局域网中别的电脑访问本机时，会弹出错误提示：
+; 登录失败：用户帐户限制………。这是XP系统的一条安全策略造成的，防止别人趁你空密码时
+; 进入你的电脑。如果你觉得无所谓，不必做这些限制，那就把它设为：已停用。
+
+
+[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\UserAssist\{75048700-EF1F-11D0-9888-006097DEACF9}\Count]
+"HRZR_EHAPCY"=hex:0C,00,00,00,26,00,00,00,F0,FB,E5,52,64,95,C6,01
+"HRZR_EHAPCY:"P:\JVAQBJF\flfgrz32\sverjnyy.pcy",Jvaqbjf 防火墙"=hex:0C,00,00,00,08,00,00,00,F0,FB,E5,52,64,95,C6,01
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\StandardProfile\GloballyOpenPorts\List]
+"445:TCP"="445:TCP:LocalSubNet:Enabled:@xpsp2res.dll,-22005"
+"137:UDP"="137:UDP:LocalSubNet:Enabled:@xpsp2res.dll,-22001"
+"138:UDP"="138:UDP:LocalSubNet:Enabled:@xpsp2res.dll,-22002"
+"139:TCP"="139:TCP:LocalSubNet:Enabled:@xpsp2res.dll,-22004"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SharedAccess\Epoch]
+"Epoch"=dword:000001ED
+
+[HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Control\Print\Providers]
+"LogonTime"=hex:E8,31,8E,4F,64,95,C6,01
+
+[HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Services\SharedAccess\Parameters\FirewallPolicy\StandardProfile\GloballyOpenPorts\List]
+"445:TCP"="445:TCP:LocalSubNet:Enabled:@xpsp2res.dll,-22005"
+"137:UDP"="137:UDP:LocalSubNet:Enabled:@xpsp2res.dll,-22001"
+"138:UDP"="138:UDP:LocalSubNet:Enabled:@xpsp2res.dll,-22002"
+"139:TCP"="139:TCP:LocalSubNet:Enabled:@xpsp2res.dll,-22004"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Services\SharedAccess\Epoch]
+"Epoch"=dword:000001ED
+; 以上数值对应系统中的位置：控制面板--防火墙--例外--文件和打印机共享。系统默认：不选。
+; 解说：所有的策略都设置好了，局域网依然不能访问，提示：您没有权限使用网络资源，找
+; 不到网络路径！呵呵，真是令人火冒三丈！其实XP还有一道关卡，就是防火墙，必须要经过
+; 防火墙的允许才行。
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Lsa]
+"forceguest"=dword:00000001
+; 以上数值对应系统中的位置是：控制面板--管理工具--本地安全策略--本地策略--安全选项，
+; 网络访问：本地帐户的共享和安全模式：仅来宾-本地用户以来宾份验证。这时，当局域网
+; 其他机访问本机时，不会弹出对话框，就可以直接进入。在家庭网等完全可以信任的区域，
+; 建议使用这种方式。
