@@ -13,10 +13,15 @@ def get_proxies_from_site():
 
     results = tree.xpath(xpath)
     proxies = [line.strip() for line in results]
-
+    print(r)
+    print(tree)
+    print(results)
+    print(proxies)
     return proxies
 
-#使用http://lwons.com/wx网页来测试代理主机是否可用
+# 使用http://lwons.com/wx网页来测试代理主机是否可用
+
+
 def get_valid_proxies(proxies, count):
     url = 'http://lwons.com/wx'
     results = []
