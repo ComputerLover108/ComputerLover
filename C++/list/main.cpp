@@ -1,6 +1,6 @@
-#include "../ComputerLover/file/file_info.h"
-#include "../ComputerLover/file/file.h"
-//#include "../ComputerLover/help/help.h"
+#include "../wukexin/file/file_info.h"
+#include "../wukexin/file/file.h"
+//#include "../wukexin/help/help.h"
 //
 #include "boost/program_options.hpp"
 #include "boost/progress.hpp"
@@ -26,7 +26,7 @@ typedef vector<string> C;
 
 struct IsFileAttributes : public binary_function<const DWORD,const string,bool>{
 	bool operator() (const DWORD aim,const string fname){
-		using namespace ComputerLover;
+		using namespace wukexin;
 		DWORD attrib=GetFileAttributes(fname.c_str() );
 		//static unsigned limit=32;
 		bitset<32> ba(aim),bf(attrib);
@@ -49,7 +49,7 @@ bool isFileTime(const SelecFileTime x,const string ftime,string fname){
 	//boost::progress_timer t( std::clog );
 	bool result=false;
 	try{
-		ComputerLover::Cfile_information file(fname);
+		wukexin::Cfile_information file(fname);
 		string ftime2;
 		if( create == x ) ftime2=file.cFileTime();
 		if( write == x )  ftime2=file.wFileTime();
@@ -101,7 +101,7 @@ void print(const string fname){
 //
 void display(const string fname){
 	using namespace fs;
-	ComputerLover::Cfile_information file(fname );
+	wukexin::Cfile_information file(fname );
 	file.print();
 }
 //
@@ -156,7 +156,7 @@ int main(int ac, char* av[])
 		//
 		if(vm.count("attributes") ){
 			string sattribs = vm["attributes"].as<string>();
-			DWORD attrib = ComputerLover::stringToAttrib(sattribs);
+			DWORD attrib = wukexin::stringToAttrib(sattribs);
 			erase_if(fileList,!boost::bind(IsFileAttributes(),attrib,_1) );
 		}
 		//
