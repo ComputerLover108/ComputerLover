@@ -4,6 +4,7 @@
 from email.parser import Parser
 from email.header import decode_header
 from email.utils import parseaddr
+import email
 import os
 import poplib
 import getpass
@@ -22,13 +23,17 @@ def getHost(email):
 #获得邮件方法附件
 def getEmailAttachment(path,msg):
     for part in msg.walk():
-        if not part.is_multipart():   
-            filename = part.get_filename()
-            #是否有附件
-            if filename:
-                data = part.get_payload(decode=True)
-                #保存附件
-                savefile(filename, data, path) 
+        if part.get_content_maintype() == 'multipart':
+            continue
+        if part.get('Content-Disposition') is None:
+            continue        
+        # if not part.is_multipart():   
+        filename = part.get_filename()
+        #是否有附件
+        if filename:
+            data = part.get_payload(decode=True)
+            #保存附件
+            savefile(filename, data, path) 
 
 #保存文件方法（都是保存在指定的根目录下）
 def savefile(filename, data, path):
@@ -124,7 +129,8 @@ for i in range(1,count):
     resp, lines, octets = server.retr(i)
     # # # lines存储了邮件的原始文本的每一行,
     # # # 可以获得整个邮件的原始文本:
-    msg_content = b'\n'.join(lines).decode('utf-8')
+    # msg_content = b'\n'.join(lines).decode('utf-8')
+    msg_content = b'\n'.join(lines).decode() 
     # # # 稍后解析出邮件:
     msg = Parser().parsestr(msg_content)
     path=os.path.normcase('e:/public/jiankong')
