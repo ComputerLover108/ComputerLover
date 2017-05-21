@@ -10,6 +10,7 @@ import os
 import time
 import getpass
 from email.parser import Parser
+import argparse
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -26,6 +27,8 @@ def getMailServer(emailAddress):
 
 
 def getEmailAttachment(path, msg):
+    title = msg.get('Subject', '')
+    logging.debug(title)
     for part in msg.walk():
         if part.get_content_maintype() == 'multipart':
             continue
@@ -42,9 +45,11 @@ def getEmailAttachment(path, msg):
 
 
 def saveEmailAttachment(filename, data, path):
-    if not os.path.exists(path):
-        os.mkdir(path)
-    filepath = os.path.join(path, filename)
+    ap = os.path.abspath(path)
+    if not os.path.exists(ap):
+        os.mkdir(ap)
+    
+    filepath = os.path.join(ap, filename)
     logging.debug('下载附件{}'.format(filepath))
     with open(filepath, 'wb') as f:
         f.write(data)
@@ -68,9 +73,9 @@ class SimpleMail(object):
                 logging.debug(e)
         logging.debug('SimpleMail construct success!')
 
-    def __del__(self):
-        self.server.quit()
-        logging.debug('SimpleMail deconstruct success!')
+    # def __del__(self):
+    #     self.server.quit()
+    #     logging.debug('SimpleMail deconstruct success!')
 
     def getEmail(self):
         resp, mails, octets = self.server.list()
@@ -90,10 +95,27 @@ class SimpleMail(object):
 
 
 if __name__ == "__main__":
-    email = input('Email: ')
-    password = getpass.getpass('Password: ')
-    path = os.path.normcase('e:/public/jiankong')
-    for i in range(8):
+    # email = input('Email: ')
+    # password = getpass.getpass('Password: ')
+    # path = os.path.normcase('e:/public/jiankong')
+    parser = argparse.ArgumentParser(description='获得邮箱里的附件')
+    parser.add_argument('-f','--file',help='密码文件')
+    args = parser.parse_args()
+    
+    if args.file:
+        infile = args.file
+        if os.path.exists(infile):
+            with open(infile) as f:
+                temp = f.read().split()
+                email = temp[0]
+                password=temp[1]
+        else:
+            print('密码文件不存在或不能打开！')
+
+
+    path = 'jiankong'
+    
+    for i in range(99):
         x = SimpleMail(email, password)
         msgs = x.getEmail()
         for msg in msgs:
