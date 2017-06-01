@@ -1,5 +1,5 @@
 #!/bin/sh
-VERSION=6.3.0
+VERSION=7.1.0
 wget -c ftp://gcc.gnu.org/pub/gcc/releases/gcc-$VERSION/gcc-$VERSION.tar.bz2 &&
 wget -c ftp://gcc.gnu.org/pub/gcc/releases/gcc-$VERSION/md5.sum &&
 tar xfj gcc-$VERSION.tar.bz2 &&

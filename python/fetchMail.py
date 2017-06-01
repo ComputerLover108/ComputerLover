@@ -3,6 +3,7 @@
 
 
 import poplib
+import imaplib
 import email
 import logging
 import re
@@ -27,8 +28,7 @@ def getMailServer(emailAddress):
 
 
 def getEmailAttachment(path, msg):
-    title = msg.get('Subject', '')
-    logging.debug(title)
+
     for part in msg.walk():
         if part.get_content_maintype() == 'multipart':
             continue
@@ -49,18 +49,20 @@ def saveEmailAttachment(filename, data, path):
     if not os.path.exists(ap):
         os.mkdir(ap)
     
-    filepath = os.path.join(ap, filename)
-    logging.debug('下载附件{}'.format(filepath))
-    with open(filepath, 'wb') as f:
-        f.write(data)
-    f.close()
-
-
+    filepath = os.path.join(ap, filename)   
+    if not os.path.exists(filepath):
+        logging.debug('下载附件{}'.format(filepath))
+        with open(filepath, 'wb') as f:
+            f.write(data)
+        f.close()     
+       
 class SimpleMail(object):
-
+    num_count = 0 # 所有的实例都共享此变量，即不单独为每个实例分配 
     def __init__(self, email, password):
+        self.__class__.num_count += 1 
         mailServer = getMailServer(email)
         self.server = poplib.POP3_SSL(mailServer)
+        self.MailDeleteTable =[]
         try:
             self.server.apop(email, password)
             logging.debug('Attempting APOP authentication Success!')
@@ -73,9 +75,12 @@ class SimpleMail(object):
                 logging.debug(e)
         logging.debug('SimpleMail construct success!')
 
-    # def __del__(self):
-    #     self.server.quit()
-    #     logging.debug('SimpleMail deconstruct success!')
+    def __del__(self):
+        self.__class__.num_count -= 1
+        for i in self.MailDeleteTable:
+            self.server.dele(i)
+        self.server.quit()
+        logging.debug('SimpleMail deconstruct success!')
 
     def getEmail(self):
         resp, mails, octets = self.server.list()
@@ -89,7 +94,12 @@ class SimpleMail(object):
             # b'\n'.join(lines)把lines转换为bytes，decode把bytes转为str
             msg_content = b'\n'.join(lines).decode()
             msg = Parser().parsestr(msg_content)
-            msgs.append(msg)
+            # sender = msg.get('From','')
+            title = msg.get('Subject', '')
+            # logging.debug(title)
+            if re.match('Attention: alarm',title):
+                msgs.append(msg)
+                self.MailDeleteTable.append(i+1)
         logging.debug('getEmail Success! It has {} msg'.format(len(msgs)))
         return msgs
 
@@ -115,9 +125,9 @@ if __name__ == "__main__":
 
     path = 'jiankong'
     
-    for i in range(99):
+    for i in range(999):
         x = SimpleMail(email, password)
         msgs = x.getEmail()
         for msg in msgs:
             getEmailAttachment(path, msg)
-        time.sleep(9)
+        time.sleep(60)
