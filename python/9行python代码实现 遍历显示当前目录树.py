@@ -1,4 +1,4 @@
-#9行python代码实现 遍历显示当前目录树
+#9python实 示前目录
 
 from os.path import basename, isdir
 from os import listdir

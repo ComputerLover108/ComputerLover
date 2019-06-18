@@ -1,4 +1,4 @@
-#Python获取接口IP地址
+#Python取涌IP址
 
 
 #!/usr/bin/env python

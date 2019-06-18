@@ -11,7 +11,7 @@ Spam is not downloaded.
 This mbox files can later on be opened with almost any email client (eg. Evolution).
 
 Author:
-    Sébastien SAUVAGE - sebsauvage at sebsauvage dot net
+    SÃ©bastien SAUVAGE - sebsauvage at sebsauvage dot net
     Webmaster for http://sebsauvage.net/
 
 License:

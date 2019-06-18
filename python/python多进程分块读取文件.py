@@ -5,7 +5,7 @@ import os
 from multiprocessing import Process,Queue,Array,RLock
 
 """
-¶à½ø³Ì·Ö¿é¶ÁÈ¡ÎÄ¼ş
+Ì·Ö¿È¡Ä¼
 """
 
 WORKERS = 4
@@ -14,7 +14,7 @@ FILE_SIZE = 0
 
 def getFilesize(file):
     """
-        »ñÈ¡Òª¶ÁÈ¡ÎÄ¼şµÄ´óĞ¡
+        È¡ÒªÈ¡Ä¼Ä´Ğ¡
     """
     global FILE_SIZE
     fstream = open(file,'r')
@@ -27,18 +27,18 @@ def process_found(pid,array,file,rlock):
     global JOB
     global PREFIX
     """
-        ½ø³Ì´¦Àí
+        Ì´
         Args:
-            pid:½ø³Ì±àºÅ
-            array:½ø³Ì¼ä¹²Ïí¶ÓÁĞ£¬ÓÃÓÚ±ê¼Ç¸÷½ø³ÌËù¶ÁµÄÎÄ¼ş¿é½áÊøÎ»ÖÃ
-            file:Ëù¶ÁÎÄ¼şÃû³Æ
-        ¸÷¸ö½ø³ÌÏÈ´ÓarrayÖĞ»ñÈ¡µ±Ç°×î´óµÄÖµÎªÆğÊ¼Î»ÖÃstartpossition
-        ½áÊøµÄÎ»ÖÃendpossition (startpossition+BLOCKSIZE) if (startpossition+BLOCKSIZE)<FILE_SIZE else FILE_SIZE
-        if startpossition==FILE_SIZEÔò½ø³Ì½áÊø
-        if startpossition==0Ôò´Ó0¿ªÊ¼¶ÁÈ¡
-        if startpossition!=0Îª·ÀÖ¹ĞĞ±»block½Ø¶ÏµÄÇé¿ö£¬ÏÈ¶ÁÒ»ĞĞ²»´¦Àí£¬´ÓÏÂÒ»ĞĞ¿ªÊ¼ÕıÊ½´¦Àí
-        if µ±Ç°Î»ÖÃ <=endpossition ¾Íreadline
-        ·ñÔòÔ½¹ı±ß½ç£¬¾Í´ÓĞÂ²éÕÒarrayÖĞµÄ×î´óÖµ
+            pid:Ì±
+            array:Ì¼ä¹²Ğ£Ú±Ç¸Ä¼Î»
+            file:Ä¼
+        È´arrayĞ»È¡Ç°ÖµÎªÊ¼Î»startpossition
+        Î»endpossition (startpossition+BLOCKSIZE) if (startpossition+BLOCKSIZE)<FILE_SIZE else FILE_SIZE
+        if startpossition==FILE_SIZEÌ½
+        if startpossition==00Ê¼È¡
+        if startpossition!=0ÎªÖ¹Ğ±blockØ¶ÏµÈ¶Ò»Ğ²Ò»Ğ¿Ê¼Ê½
+        if Ç°Î» <=endpossition readline
+        Ô½ß½ç£¬Í´Â²arrayĞµÖµ
     """
     fstream = open(file,'r')
     
@@ -58,7 +58,7 @@ def process_found(pid,array,file,rlock):
         pos = ss = fstream.tell()
         ostream = open('/data/download/tmp_pid'+str(pid)+'_jobs'+str(endpossition),'w')
         while pos<endpossition:
-            #´¦Àíline
+            #line
             line = fstream.readline()                        
             ostream.write(line)
             pos = fstream.tell()

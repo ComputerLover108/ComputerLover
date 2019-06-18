@@ -1,4 +1,4 @@
-#log日志记录
+#log志录
 
 #!/usr/bin/env python
 #-*-coding:utf-8-*-

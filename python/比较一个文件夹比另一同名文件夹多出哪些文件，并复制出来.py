@@ -1,4 +1,4 @@
-#±È½ÏÒ»¸öÎÄ¼ş¼Ğ±ÈÁíÒ»Í¬ÃûÎÄ¼ş¼Ğ¶à³öÄÄĞ©ÎÄ¼ş£¬²¢¸´ÖÆ³öÀ´
+#È½Ò»Ä¼Ğ±Ò»Í¬Ä¼Ğ¶Ğ©Ä¼Æ³
 
 # coding=gbk
 '''
@@ -9,7 +9,7 @@ Created on 2011-1-7
 import os,ConfigParser
 
 '''
-µİ¹éÁĞ³öÄ³Ä¿Â¼ÏÂµÄÎÄ¼ş£¬·ÅÈëListÖĞ
+İ¹Ğ³Ä³Ä¿Â¼ÂµÄ¼List
 '''
 def listDir (fileList,path):
     files=os.listdir(path)
@@ -25,7 +25,7 @@ def listDir (fileList,path):
     return fileList
 
 '''
-½«ListÖĞÄÚÈİĞ´ÈëÎÄ¼ş
+ListĞ´Ä¼
 '''
 def writeListToFile(list,path):
     strs="\n".join(list)
@@ -34,7 +34,7 @@ def writeListToFile(list,path):
     f.close()
 
 '''
-¶ÁÈëÎÄ¼şÄÚÈİ²¢·ÅÈëListÖĞ
+Ä¼İ²List
 '''
 def readFileToList(path):
     lists=[]
@@ -46,13 +46,13 @@ def readFileToList(path):
     return lists
 
 '''
-±È½ÏÎÄ¼ş--ÒÔSet·½Ê½
+È½Ä¼--SetÊ½
 '''
 def compList(list1,list2):
     return list(set(list1)-set(list2))
 
 '''
-¸´ÖÆListÖĞÎÄ¼şµ½Ö¸¶¨Î»ÖÃ
+ListÄ¼Ö¸Î»
 '''
 def copyFiles(fileList,targetDir):
     for file in fileList:
@@ -61,27 +61,27 @@ def copyFiles(fileList,targetDir):
         if not os.path.exists(targetPath):
             os.makedirs(targetPath)
         if not os.path.exists(targetFile) or (os.path.exists(targetFile) and os.path.getsize(targetFile)!=os.path.getsize(file)):
-            print "ÕıÔÚ¸´ÖÆÎÄ¼ş£º"+file
+            print "Ú¸Ä¼"+file
             open(targetFile,'wb').write(open(file,'rb').read())
         else:
-            print "ÎÄ¼şÒÑ´æÔÚ£¬²»¸´ÖÆ£¡"
+            print "Ä¼Ñ´Ú£Æ£"
 
 
 if __name__ == '__main__':
     path=".svn"
-    #»ñÈ¡Ô´Ä¿Â¼
+    #È¡Ô´Ä¿Â¼
     
     txtFile="1.txt"
-    #Ä¿Â¼½á¹¹Êä³öµÄÄ¿µÄÎÄ¼ş
+    #Ä¿Â¼á¹¹Ä¿Ä¼
     
     tdir="cpfile"
-    #¸´ÖÆµ½µÄÄ¿±êÄ¿Â¼
+    #ÆµÄ¿Ä¿Â¼
     
     cfFile="config.ini";
-    #ÅäÖÃÎÄ¼şÎÄ¼şÃû
+    #Ä¼Ä¼
     fileList=[]
     
-    #¶ÁÈ¡ÅäÖÃÎÄ¼ş
+    #È¡Ä¼
     if(os.path.exists(cfFile)):
         cf=ConfigParser.ConfigParser()
         cf.read(cfFile)
@@ -90,38 +90,38 @@ if __name__ == '__main__':
         txtFile=cf.get("main","txtFile")
         tdir=cf.get("main","targetDir")
     else:
-        print "ÅäÖÃÎÄ¼ş²»´æÔÚ£¡"
-        raw_input("\n°´ »Ø³µ¼ü ÍË³ö\n")
+        print "Ä¼Ú£"
+        raw_input("\n Ø³ Ë³\n")
         exit()
     
     if(os.path.exists(txtFile)):
-        #Èç¹ûµ¼³öµÄÎÄ¼ş´æÔÚ£¬¾Í¶ÁÈ¡ºó±È½Ï
+        #Ä¼Ú£Í¶È¡È½
         list1=readFileToList(txtFile)
-        print "ÕıÔÚ¶ÁÈ¡ÎÄ¼şÁĞ±í¡­¡­"
+        print "Ú¶È¡Ä¼Ğ±"
         fileList=listDir (fileList,path)
-        print "ÕıÔÚ±È½ÏÎÄ¼ş¡­¡­"
+        print "Ú±È½Ä¼"
         list_res=compList(fileList,list1)
         
         if len(list_res)>0:
-            print "ÒÔÏÂÊÇÔ­Ä¿Â¼ÖĞ²»´æÔÚµÄÎÄ¼ş£º\n"
+            print "Ô­Ä¿Â¼Ğ²ÚµÄ¼\n"
             print "\n".join(list_res)
-            print "\n¹²¼ÆÎÄ¼şÊı£º"+str(len(list_res))+"\n"
-            if raw_input("\nÊÇ·ñ¸´ÖÆÎÄ¼ş£¿£¨y/n£©")!='n':
+            print "\nÄ¼"+str(len(list_res))+"\n"
+            if raw_input("\nÇ·Ä¼y/n")!='n':
                 copyFiles(list_res,tdir)
         else:
-            print "Ã»ÓĞ²»ÏàÍ¬µÄÎÄ¼ş£¡"
+            print "Ã»Ğ²Í¬Ä¼"
     else:
-        #Èç¹ûµ¼³öµÄÎÄ¼ş²»´æÔÚ£¬Ôòµ¼³öÎÄ¼ş
-        print "ÕıÔÚ¶ÁÈ¡ÎÄ¼şÁĞ±í¡­¡­"
+        #Ä¼Ú£òµ¼³Ä¼
+        print "Ú¶È¡Ä¼Ğ±"
         fileList=listDir (fileList,path)
         writeListToFile(fileList,txtFile)
-        print "ÒÑ±£´æµ½ÎÄ¼ş£º"+txtFile
+        print "Ñ±æµ½Ä¼"+txtFile
         
-    raw_input("\n°´ »Ø³µ¼ü ÍË³ö\n")
+    raw_input("\n Ø³ Ë³\n")
 
-[´úÂë] ÅäÖÃÎÄ¼şÃû£ºconfig.ini
+[] Ä¼config.ini
 
-#ÅäÖÃÎÄ¼şÃû£ºconfig.ini
+#Ä¼config.ini
 [main]
 sourceDir=wwwroot
 txtFile=1.txt

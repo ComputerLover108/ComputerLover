@@ -1,5 +1,5 @@
 """
-删除目录下相同文件的python代码(md5)
+删目录同募python(md5)
 """
 # -*- coding: UTF-8 -*-
 import md5
@@ -27,7 +27,7 @@ new_md5 = getmd5(real_path)
 if all_size[size][1]=='':
 all_size[size][1]=getmd5(all_size[size][0])
 if new_md5 in all_size[size]:
-print '删除',file
+print '删',file
 total_delete += 1
 else:
 all_size[size].append(new_md5)
@@ -35,9 +35,9 @@ else:
 all_size[size]=name_and_md5
 end = now()
 time_last = end - start
-print '文件总数：',total_file
-print '删除个数：',total_delete
-print '耗时：',time_last,'秒'
+print '募',total_file
+print '删',total_delete
+print '时',time_last,''
 
 if __name__=='__main__':
 main() 

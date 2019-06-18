@@ -26,17 +26,17 @@ Hello ,This a simple SMTP_mail example.
 """ % (','.join(toaddr),fromaddr)
 
 def get_size():
-    """»ñµÃ·şÎñÆ÷ÔÊĞí·¢ËÍÓÊ¼şµÄ´óĞ¡"""
+    """Ã·Ê¼Ä´Ğ¡"""
     try:
-        s = smtplib.SMTP(server)     #Á¬½Óµ½·şÎñÆ÷
-        code = s.ehlo()[0]      #·µ»Ø·şÎñÆ÷µÄÌØĞÔ
+        s = smtplib.SMTP(server)     #Óµ
+        code = s.ehlo()[0]      #Ø·
         usesesmtp = 1
-        if not (200 <= code <=299):         #ÔÚ200µ½299Ö®¼ä¶¼ÊÇÕıÈ·µÄ·µ»ØÖµ
+        if not (200 <= code <=299):         #200299Ö®ä¶¼È·Ä·Öµ
             usesesntp = 0
             code = s.helo()[0]
             if not (200 <= code <=299):
                 raise SMTPHeloError(code,resp)
-        if usesesmtp and s.has_extn('size'):         #»ñµÃ·şÎñÆ÷ÔÊĞí·¢ËÍÓÊ¼şµÄ´óĞ¡
+        if usesesmtp and s.has_extn('size'):         #Ã·Ê¼Ä´Ğ¡
             print "Maxinum message size is ",s.esmtp_features['size']
             if len(message) > int(s.esmtp_features['size']):
                 print "Message too large;aborting."
@@ -50,27 +50,27 @@ def get_size():
         print "***Message successful sent to %d recipient(s)" % len(toaddr)
 
 def ssl_tls():
-    """Ê¹ÓÃSSL°²È«Ì×½×²ãºÍTLS°²È«´«Êä²ã½øĞĞÓÊ¼ş´«Êä£¬È·±£ÃÜÂëÔÚ´«ÊäÖĞµÄ°²È«"""
+    """Ê¹SSLÈ«×½×²TLSÈ«Ê¼ä£¬È·Ú´ĞµÄ°È«"""
     try:
-        s = smtplib.SMTP(server)     #Á¬½Óµ½·şÎñÆ÷
-        code = s.ehlo()[0]      #·µ»Ø·şÎñÆ÷µÄÌØĞÔ
+        s = smtplib.SMTP(server)     #Óµ
+        code = s.ehlo()[0]      #Ø·
         usesesmtp = 1
-        if not (200 <= code <=299):         #ÔÚ200µ½299Ö®¼ä¶¼ÊÇÕıÈ·µÄ·µ»ØÖµ
+        if not (200 <= code <=299):         #200299Ö®ä¶¼È·Ä·Öµ
             usesesntp = 0
             code = s.helo()[0]
             if not (200 <= code <=299):
                 raise SMTPHeloError(code,resp)
-        if usesesmtp and s.has_extn('starttls'):         #²é¿´·şÎñÆ÷ÊÇ·ñÖ§³ÖTLS
+        if usesesmtp and s.has_extn('starttls'):         #é¿´Ç·Ö§TLS
             print "Negotiating TLS......"
             s.starttls()
             code = s.ehlo()[0]
-            if not (200 <= code <=299):             #ÔÚÖ§³ÖTLSµÄ·şÎñÆ÷ÉÏÊÇ·ñÁ¬½Ó»Ø»°³É¹¦
+            if not (200 <= code <=299):             #Ö§TLSÄ·Ç·Ó»Ø»É¹
                 print "Couldn't EHLO after STARTTLS."
                 sys.exit(5)
             print "Using TLS connection."
         else:
             print "Server does not suport TLS; using normal connection."
-        s.sendmail(fromaddr,toaddr,message)         #Èç¹ûÁ¬½ÓTLS³É¹¦ÔòÊ¹ÓÃ¼ÓÃÜ´«Êä£»ÈôÁ¬½ÓTLS³ö´íÔòÊ¹ÓÃÆÕÍ¨µÄ´«Êä
+        s.sendmail(fromaddr,toaddr,message)         #TLSÉ¹Ê¹Ã¼Ü´ä£»TLSÊ¹Í¨Ä´
     except(socket.gaierror,socket.error,socket.herror,smtplib.SMTPException),e:
         print "***Your message may not have been sent!"
         print e
@@ -79,20 +79,20 @@ def ssl_tls():
         print "***Message successful sent to %d recipient(s)" % len(toaddr)
 
 def auth_login():
-    """µ±·¢ËÍÓÊ¼şÊ±£¬·şÎñÆ÷ĞèÒªÑéÖ¤£¬ÔòÊäÈëÓÃ»§ÃûÃÜÂë·½¿É·¢ËÍÓÊ¼ş"""
+    """Ê¼Ê±ÒªÖ¤Ã»ë·½É·Ê¼"""
     sys.stdout.write("Enter username: ")
     username = sys.stdin.readline().strip()
     password = getpass("Enter password: ")
     try:
-        s = smtplib.SMTP(server)     #Á¬½Óµ½·şÎñÆ÷
-        code = s.ehlo()[0]      #·µ»Ø·şÎñÆ÷µÄÌØĞÔ
+        s = smtplib.SMTP(server)     #Óµ
+        code = s.ehlo()[0]      #Ø·
         usesesmtp = 1
-        if not (200 <= code <=299):         #ÔÚ200µ½299Ö®¼ä¶¼ÊÇÕıÈ·µÄ·µ»ØÖµ
+        if not (200 <= code <=299):         #200299Ö®ä¶¼È·Ä·Öµ
             usesesntp = 0
             code = s.helo()[0]
             if not (200 <= code <=299):
                 raise SMTPHeloError(code,resp)
-        if usesesmtp and s.has_extn('auth'):         #²é¿´·şÎñÆ÷ÊÇ·ñÖ§³ÖÈÏÖ¤
+        if usesesmtp and s.has_extn('auth'):         #é¿´Ç·Ö§Ö¤
             print "Using Authentication connect."
             try:
                 s.login(username,password)
@@ -101,7 +101,7 @@ def auth_login():
                 sys.exit(1)
         else:
             print "Server does not suport Authentication; using normal connect."
-        s.sendmail(fromaddr,toaddr,message)         #Èç¹ûÖ§³ÖÈÏÖ¤ÔòÊäÈëÓÃ»§ÃûÃÜÂë½øĞĞÈÏÖ¤£»²»Ö§³ÖÔòÊ¹ÓÃÆÕÍ¨ĞÎÊ½½øĞĞ´«Êä
+        s.sendmail(fromaddr,toaddr,message)         #Ö§Ö¤Ã»Ö¤Ö§Ê¹Í¨Ê½Ğ´
     except(socket.gaierror,socket.error,socket.herror,smtplib.SMTPException),e:
         print "***Your message may not have been sent!"
         print e

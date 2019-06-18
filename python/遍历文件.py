@@ -1,4 +1,4 @@
-#±éÀúÎÄ¼ş
+#Ä¼
 
 
 import os
@@ -10,36 +10,36 @@ if __name__=="__main__":
   os.path.walk(paths,searchdir,())
   
 
-[´úÂë] ×öÁËĞŞ¸Ä£¬Ìí¼ÓÁËÎÄ¼şÊôĞÔ
+[] Ş¸Ä£Ä¼
 
 # -*- coding: cp936 -*-
 import os,time
-#½«ÎÄ¼şÊôĞÔÖĞµÄÊ±¼ä¸ÄÎª¡®2011-1-12 00£º00£º00¸ñÊ½¡¯
+#Ä¼ĞµÊ±Îª2011-1-12 000000Ê½
 def formattime(localtime):
   endtime=time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(localtime))
   return endtime
 
 def searchdir(arg,dirname,names):
   for filespath in names:
-    #µÃµ½ÎÄ¼şÂ·¾¶
+    #ÃµÄ¼Â·
     fullpath=os.path.join(dirname,filespath)
-    #µÃµ½ÎÄ¼şÊôĞÔ
+    #ÃµÄ¼
     statinfo=os.stat(fullpath)
-    #ÎÄ¼ş´óĞ¡
+    #Ä¼Ğ¡
     sizefile=statinfo.st_size
-    #´´½¨Ê±¼ä
+    #Ê±
     creattime=formattime(statinfo.st_ctime)
-    #ĞŞ¸ÄÊ±¼ä
+    #Ş¸Ê±
     maketime=formattime(statinfo.st_mtime)
-    #ä¯ÀÀÊ±¼ä
+    #Ê±
     readtime=formattime(statinfo.st_atime)
-    #ÅĞ¶ÏÊÇÎÄ¼ş¼Ğ»¹ÊÇÎÄ¼ş
+    #Ğ¶Ä¼Ğ»Ä¼
     if os.path.isdir(fullpath):
       filestat='DIR'
     else:
       filestat='FILE'
   
-    open ('c:\\test.txt','a').write('¡¾%s¡¿Â·¾¶£º%s  ÎÄ¼ş´óĞ¡(B)£º%s  ´´½¨Ê±¼ä£º%s  ĞŞ¸ÄÊ±¼ä£º%s  ä¯ÀÀÊ±¼ä£º%s\r\n'%(filestat,fullpath,sizefile,creattime,maketime,readtime)) 
+    open ('c:\\test.txt','a').write('%sÂ·%s  Ä¼Ğ¡(B)%s  Ê±ä£º%s  Ş¸Ê±ä£º%s  Ê±ä£º%s\r\n'%(filestat,fullpath,sizefile,creattime,maketime,readtime)) 
 
 if __name__=="__main__":
   paths="g:\\"

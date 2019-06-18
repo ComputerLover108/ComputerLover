@@ -1,4 +1,4 @@
-#递归查找文件
+#莨募
 
 #!/usr/bin/python
 #-*-coding:utf8-*-
@@ -48,7 +48,7 @@ if __name__ == "__main__":
 #        find_file(specific_file,search_directory)
         find_path_file(specific_file,search_directory)
 
-[文件] find_file.py ~ 2KB    下载(1)
+[募] find_file.py ~ 2KB    (1)
 
 #!/usr/bin/python
 #-*-coding:utf8-*-

@@ -21,7 +21,7 @@ if len(sys.argv) < 4:
 passwd = getpass.getpass()
 destfd = open(dest,"at")
     
-p = poplib.POP3(host)           #Èç¹û·þÎñÆ÷Ö§³ÖºÍÐèÒªAPOPÈÏÖ¤£¬APOPÊ¹ÓÃ¼ÓÃÜ±£»¤ÃÜÂë±»ÇÔÈ¡
+p = poplib.POP3(host)           #Ö§ÖºÒªAPOPÖ¤APOPÊ¹Ã¼Ü±ë±»È¡
 try:
     print "Attempting APOP authentication..."
     print "Logging on..."
@@ -37,18 +37,18 @@ except poplib.error_proto:
     except poplib.error_proto,e:
         print "Login fialed:",e
         sys.exit(1)
-print "*****Scanning INBOX...*****"         #É¨Ãè·þÎñÆ÷ÓÊÏäµÄÓÊ¼þ
+print "*****Scanning INBOX...*****"         #É¨Ê¼
 mail_box_list = p.list()[1]
 print "There is %d messages.\n" % len(mail_box_list)
 
-delelist = []           #Òª½øÐÐÉ¾³ýµÄÓÖ¼û¶ÓÁÐ
+delelist = []           #ÒªÉ¾Ö¼
 
 for item in mail_box_list:
-    number,octets = item.split(' ')         #Ã¿Ò»¸öÔªËØÖ®¼äÓÐ¿Õ¸ñ¸ô¿ª
+    number,octets = item.split(' ')         #Ã¿Ò»ÔªÖ®Ð¿Õ¸
     print "Downloading message %s (%s bytes)..." % (number,octets)
-    lines = p.retr(number)[1]           #ÏÂÔØÓÊ¼þ
-    msg = email.message_from_string("\n".join(lines))           #½¨Á¢Ò»¸ö¶ÔÏó½ÓÊÜÓÊ¼þÄÚÈÝ
-    destfd.write(msg.as_string(unixfrom = 1))           #½²ÓÊ¼þÄÚÈÝÐ´½øÄ¿±êÎÄ¼þ
+    lines = p.retr(number)[1]           #Ê¼
+    msg = email.message_from_string("\n".join(lines))           #Ò»Ê¼
+    destfd.write(msg.as_string(unixfrom = 1))           #Ê¼Ð´Ä¿Ä¼
     destfd.write("\n")
     delelist.append(number)
     print "Done !\n"
@@ -58,7 +58,7 @@ counter = 0
 for number in delelist:
     counter = counter + 1
     print "Deleting message %d of %d \r" % (counter,len(delelist))
-    p.dele(number)          #É¾³ýÓÊ¼þ
+    p.dele(number)          #É¾Ê¼
 
 if counter > 0:
     print "Successfully deleted %d message from server.\n" % counter
@@ -67,5 +67,5 @@ else:
 
 print "Closing connection..."
 
-p.quit()            #¶Ï¿ªÁ¬½Ó
+p.quit()            #Ï¿
 print "Done !\n"

@@ -1,4 +1,4 @@
-#(Python—ßœ∞£©CSVµÁª∞±æ
+#(Python—ßœ∞CSVÁª∞
 
 #Filename: TelBook.py
 

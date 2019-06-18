@@ -60,18 +60,18 @@ class Com63Mail( BaseMail ):
 
 if __name__=="__main__" : 
      
-    sSubject = u'python3000邮件发送测试' 
-    sContent = u'<font color="#FF0066">热门评论</color>' 
-    lsPlugin = [{'subject' : u'附1abc.txt', 'content' : u'内容1abc'}, {'subject' : u'附2abc.txt', 'content' : u'内容2abc'}] 
+    sSubject = u'python3000始筒' 
+    sContent = u'<font color="#FF0066"></color>' 
+    lsPlugin = [{'subject' : u'1abc.txt', 'content' : u'1abc'}, {'subject' : u'2abc.txt', 'content' : u'2abc'}] 
     gmail = GMail( 'x@gmail.com' , 'password' ) 
     lsTo = ['xxx@gmail.com'] 
     lsCc = [] 
     gmail.send( sSubject, sContent, lsTo, lsCc, lsPlugin ) 
     print 'gmail send'  
      
-    sSubject = u'python3000邮件发送测试' 
-    sContent = u'<font color="#FF0066">热门评论</color>' 
-    lsPlugin = [{'subject' : u'附1abc.txt', 'content' : u'内容1abc'}, {'subject' : u'附2abc.txt', 'content' : u'内容2abc'}] 
+    sSubject = u'python3000始筒' 
+    sContent = u'<font color="#FF0066"></color>' 
+    lsPlugin = [{'subject' : u'1abc.txt', 'content' : u'1abc'}, {'subject' : u'2abc.txt', 'content' : u'2abc'}] 
     com163 = Com63Mail( 'x@163.com' , 'password' ) 
     lsTo = ['xxx@163.com'] 
     lsCc = [] 

@@ -1,4 +1,4 @@
-#python遍历目录(不完善)
+#python目录()
 
 import os,sys
 

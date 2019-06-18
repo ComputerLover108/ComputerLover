@@ -22,14 +22,14 @@ if __name__ == '__main__':
     threads = []
     num = 4
     count = 1
-    # 创建锁
+    # 
     mutex = threading.Lock()
-    # 创建线程对象
+    # 叱潭
     for x in xrange(0, num):
         threads.append(Test(10))
-    # 启动线程
+    # 叱
     for t in threads:
         t.start()
-    # 等待子线程结束
+    # 却叱探
     for t in threads:
         t.join()

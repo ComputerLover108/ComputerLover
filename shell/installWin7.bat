@@ -1,0 +1,1 @@
+create vdisk file=e:\backup\system\windows\thinkpad.vhd maximum=80000 type=expandable

@@ -1,14 +1,14 @@
 #
-#将目录中的TXT全成一个大TXT
+#目录械TXT全一TXT
 #coding=gbk
 import os
 import sys
 import glob
 def dirTxtToLargeTxt(dir,outputFileName):
-    '''从dir目录下读入所有的TXT文件,将它们写到outputFileName里去'''
-    #如果dir不是目录返回错误
+    '''dir目录露械TXT募,写outputFileName去'''
+    #dir目录卮
     if not os.path.isdir(dir):
-        print "传入的参数有错%s不是一个目录" %dir
+        print "牟写%s一目录" %dir
         return False
     #list all txt files in dir
     outputFile = open(outputFileName,"a")

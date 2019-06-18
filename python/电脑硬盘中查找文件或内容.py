@@ -1,11 +1,11 @@
-#µçÄÔÓ²ÅÌÖĞ²éÕÒÎÄ¼ş»òÄÚÈİ
+#Ó²Ğ²Ä¼
 
 #coding:cp936
 '''
-×÷Õß£ºĞ¡Âí¹ıºÓ
+ß£Ğ¡
 '''
 import os
-#±£´æµ±Ç°ÓĞµÄ´ÅÅÌ
+#æµ±Ç°ĞµÄ´
 def existdisk():
 	curdisks = []
 	allDisks = ['C:', 'D:', 'E:', 'F:', 'G:', 'H:', 'I:', 'J:', 'K:', \
@@ -17,24 +17,24 @@ def existdisk():
 			
 	return curdisks
 
-#Ä¿Â¼ÖĞº¬ÓĞ²éÕÒµÄ×Ö·û
+#Ä¿Â¼ĞºĞ²ÒµÖ·
 def SearchDirFile(path, src):
 	if not os.path.exists(path):
-		print "%s Â·¾¶²»´æÔÚ" % path
+		print "%s Â·" % path
 	for root , dirs, files in os.walk(path, True):
-		if - 1 != root.find(src):   #Â·¾¶ÃûÖĞÊÇ·ñ´æÔÚÒª²éÕÒµÄ×Ö·û
+		if - 1 != root.find(src):   #Â·Ç·ÒªÒµÖ·
 			print root  
 		for item in files:
 			 path = os.path.join(root, item)
-			 if - 1 != path.find(src):         #ÎÄ¼şÁĞ±íÖĞÊÇ·ñÓĞÒª²éÕÒµÄ×Ö·û
+			 if - 1 != path.find(src):         #Ä¼Ğ±Ç·ÒªÒµÖ·
 			 	print path
 
 			 	
 			 	
-#²éÕÒÎÄ¼şÄÚÈİÖĞÓĞÒª²éÕÒµÄ×Ö·û
+#Ä¼ÒªÒµÖ·
 def SearchFile(path, src):	
 	if not os.path.exists(path):
-		print "%s Â·¾¶²»´æÔÚ" % path
+		print "%s Â·" % path
 	for root, dirs, files in os.walk(path, True):
 		for item in files:
 			path = os.path.join(root, item)
@@ -42,7 +42,7 @@ def SearchFile(path, src):
 			try:
 				f = open(path, 'r')
 				for eachline in f.readlines():
-					if - 1 != eachline.find(src):    #ÎÄ±¾ÄÚÈİÖĞÊÇ·ñÓĞÒª²éÕÒµÄ×Ö·û
+					if - 1 != eachline.find(src):    #Ä±Ç·ÒªÒµÖ·
 						print path
 						f.close()
 						break
@@ -50,21 +50,21 @@ def SearchFile(path, src):
 				pass
 	
 	
-#²éÕÒµ±Ç°ËùÓĞ´ÅÅÌÄ¿Â¼ÏÂÊÇ·ñÓĞÒªÕÒµÄ×Ö·û
+#ÒµÇ°Ğ´Ä¿Â¼Ç·ÒªÒµÖ·
 def   SearchAllDirFile(src):	
 	curdisks = existdisk()
 	for disk in curdisks:
 		disk = disk + '\\'
 		SearchDirFile(disk, src)
-	print "Íê³ÉËÑË÷"
+	print ""
 	
-#²éÕÒµ±Ç°ËùÓĞ´ÅÅÌÄ¿Â¼ÎÄ¼şÄÚÈİÏÂÊÇ·ñÓĞÒªÕÒµÄ×Ö·û
+#ÒµÇ°Ğ´Ä¿Â¼Ä¼Ç·ÒªÒµÖ·
 def   SearchALLFile(src):			
 	curdisks = existdisk()
 	for disk in curdisks:
 		disk = disk + "\\"
 		SearchFile(disk, src)
-	print "Íê³ÉËÑË÷"
+	print ""
 	
 	
 SearchALLFile('suixin@codemate.cn')

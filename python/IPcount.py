@@ -7,6 +7,7 @@ import threading
 import ipaddress
 import re
 import sqlite3
+import argparse
 
 def worker_func(pingArgs, pending, done):
     try:
@@ -38,14 +39,11 @@ def worker_func(pingArgs, pending, done):
         # Tell the main thread that a worker is about to terminate.
         done.put(None)
 
-def getAvailableDNS():
+def getAvailiableIP(ips):
     # The number of workers.
     NUM_WORKERS = 4
 
     plat = platform.system()
-    scriptDir = sys.path[0]
-    hosts = os.path.join(scriptDir, 'dnsHost.txt')
-    print(hosts)
     # The arguments for the 'ping', excluding the address.
     if plat == "Windows":
         pingArgs = ["ping", "-n", "1", "-l", "1", "-w", "100"]
@@ -60,19 +58,20 @@ def getAvailableDNS():
     # The queue of results.
     done = queue.Queue()
 
+    # scriptDir = sys.path[0]
+    # hosts = os.path.join(scriptDir, 'dnsHost.txt')
+    for ip in ips:
+        pending.put(ip)
+            
     # Create all the workers.
     workers = []
     for _ in range(NUM_WORKERS):
         workers.append(threading.Thread(target=worker_func, args=(pingArgs, pending, done)))
 
     # Put all the addresses into the 'pending' queue.
-    with open(hosts,'r') as f:
-        data = f.read()
-        ips = data.split()
-        for ip in ips:
-            pending.put(ip)
 
-    # for ip in list(ipaddress.ip_network("10.69.69.0/24").hosts()):
+
+    # for ip in list(ipaddress.ip_network("192.168.16.0/24").hosts()):
     #     pending.put(str(ip))
 
     # Start all the workers.
@@ -99,17 +98,41 @@ def getAvailableDNS():
         w.join()
 
     
-    SQL = "create table dns_table (ip,mint,maxt,avgt)"
+    SQL = "create table dns_table (ip,mint interger,maxt interger, avgt interger)"
     c.execute(SQL) 
     c.executemany('INSERT INTO dns_table VALUES (?,?,?,?)', purchases)
-    SQL = "select ip,mint,maxt,avgt from dns_table order by avgt limit 1"
+    SQL = "select ip,mint,maxt,avgt from dns_table order by avgt"
     c.execute(SQL)
-    print(c.fetchone())
+    rows = c.fetchall()
+    for row in rows:
+        print(row)
 
 def main():
-    os.remove('temp.db')
-    getAvailableDNS()
-    os.remove('temp.db')
+    parser = argparse.ArgumentParser(description='ip[网址]获取和统计')
+    parser.add_argument('-f','--file', help='从指定文件里提取ip')
+    parser.add_argument('--ip',help='指定网段,例:192.168.16.0/24')
+    args = parser.parse_args()
+    ips =list()
+    if args.file:
+        hosts = args.file
+        with open(hosts,'r') as f:
+            data = f.read()
+            ips = data.split()
+    if args.ip:
+        # print(args.ip)
+        temp=list(ipaddress.ip_network(args.ip).hosts())
+        ips = [str(ip) for ip in temp ]
+        # print(type(ips),ips)
+        # for ip in ips:
+        #     print(str(ip))
+            # ip = re.match('(\d{1,3}\.){2}\d{1,3}',ip.decode)
+    if os.path.exists('temp.db'):
+        os.remove('temp.db')
+    if ips:
+        getAvailiableIP(ips)
+        os.remove('temp.db')
+    # netsh interface ipv4 set dnsservers "WLAN" static 202.96.64.68 primary        
+    # netsh interface ipv4 add dnsservers "WLAN" 9.9.9.9
 
 if __name__=="__main__":
     main()

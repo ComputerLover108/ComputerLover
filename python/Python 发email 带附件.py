@@ -1,6 +1,6 @@
-#Python 发email 带附件
+#Python email 
 #encoding=utf-8
-#甄码农 python 示例代码
+#农 python 示
 
 from email.MIMEText import MIMEText
 from email.MIMEMultipart import MIMEMultipart
