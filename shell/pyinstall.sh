@@ -12,13 +12,17 @@
 #apt-get -y install libdb-dev
 #apt-get -y install libc6-dev
 #apt-get -y install zlib
-VERSION=3.6.5
-JOBS=`cat /proc/cpuinfo | grep processor | wc -l`
+VERSION=$1
+JOBS=$2
+if [ ! $JOBS ]; then
+	JOBS=`cat /proc/cpuinfo | grep processor | wc -l`
+fi
 cd /tmp
 wget -c https://www.python.org/ftp/python/$VERSION/Python-$VERSION.tar.xz
 tar xfJ Python-$VERSION.tar.xz
 cd Python-$VERSION
-CC=clang ./configure  --enable-loadable-sqlite-extensions --enable-optimizations --disable-shared --prefix=/opt/python3.6 >>/tmp/buildPython.log 2>&1 
+VERSION=${VERSION%.*}
+CC=clang ./configure  --enable-loadable-sqlite-extensions --enable-optimizations --disable-shared --prefix=/opt/python$VERSION >>/tmp/buildPython.log 2>&1 
 make -j $JOBS >>/tmp/buildPython.log 2>&1 
 make -j $JOBS test >>/tmp/buildPython.log 2>&1 
 make -j $JOBS install >>/tmp/buildPython.log 2>&1 
