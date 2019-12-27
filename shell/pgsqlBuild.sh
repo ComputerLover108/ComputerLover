@@ -2,7 +2,6 @@
 # sudo apt-get install libreadline-dev zlib1g-dev libxslt-dev libxml2-dev libssl-dev libsystemd-dev
 VERSION=$1
 JOBS=$2
-JOBS=`cat /proc/cpuinfo | grep processor | wc -l`
 if [ ! $JOBS ]; then
 	JOBS=`cat /proc/cpuinfo | grep processor | wc -l`
 fi

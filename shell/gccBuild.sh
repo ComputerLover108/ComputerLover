@@ -1,6 +1,9 @@
 #!/bin/sh
-VERSION=7.3.0
-JOBS=`cat /proc/cpuinfo | grep processor | wc -l`
+VERSION=$1
+JOBS=$2
+if [ ! $JOBS ]; then
+	JOBS=`cat /proc/cpuinfo | grep processor | wc -l`
+fi
 wget -c ftp://gcc.gnu.org/pub/gcc/releases/gcc-$VERSION/gcc-$VERSION.tar.gz &&
 tar xfz gcc-$VERSION.tar.gz &&
 cd gcc-$VERSION &&
