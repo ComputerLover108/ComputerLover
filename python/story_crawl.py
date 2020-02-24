@@ -78,7 +78,8 @@ def crawling(url):
         os.mkdir(location)
     filename = title+'.md'
     filename = re.sub('[\\\\/:*?\"<>|]','',filename)
-    filename = os.path.join(location,filename)      
+    filename = os.path.join(location,filename)
+    filename = os.path.abspath(filename)      
     if os.path.exists(filename):
         return
     with open(filename,'w+',encoding='utf8') as f:
@@ -101,8 +102,10 @@ if __name__ == "__main__":
         pages = re.search(r'Pages: +\d+\/(?P<page_count>\d+)',response.text)             
         page_count=int(pages.group('page_count'))
         pool = Pool()
-        multi_res = [pool.apply_async(page_crawling,args=(url,params,i))for i in range(1,page_count+1)]
-        random.shuffle(multi_res)
+        page_range = [ x for x in range(1,page_count+1)]
+        random.shuffle(page_range)
+        logger.info('page range: {}'.format(page_range))
+        multi_res = [pool.apply_async(page_crawling,args=(url,params,i))for i in page_range]
         for res in multi_res:
             res.get()   
 
