@@ -1,5 +1,6 @@
 import requests
-from multiprocessing import Pool
+# from multiprocessing import Pool,cpu_count
+import multiprocessing
 from bs4 import BeautifulSoup
 import re
 import time
@@ -101,12 +102,14 @@ if __name__ == "__main__":
         child_urls = re.findall(r'html_data\/\d+\/\d+\/\d+\.html',response.text)
         pages = re.search(r'Pages: +\d+\/(?P<page_count>\d+)',response.text)             
         page_count=int(pages.group('page_count'))
-        pool = Pool()
+        NUMBER_OF_PROCESSES = multiprocessing.cpu_count()
+        pool = multiprocessing.Pool(NUMBER_OF_PROCESSES)
         page_range = [ x for x in range(1,page_count+1)]
         random.shuffle(page_range)
         logger.info('page range: {}'.format(page_range))
-        multi_res = [pool.apply_async(page_crawling,args=(url,params,i))for i in page_range]
-        for res in multi_res:
-            res.get()   
+        multi_res = [pool.apply(page_crawling,args=(url,params,i))for i in page_range]
+        pool.close()
+        pool.join() 
+  
 
 

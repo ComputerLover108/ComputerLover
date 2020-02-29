@@ -1,6 +1,7 @@
 import requests
 import json
-import time, datetime
+import time
+import datetime
 import threading
 import os
 import psycopg2
@@ -51,9 +52,12 @@ class MyPostgreSQL:
         self.conn = psycopg2.connect(dbname,user,password,host,port)
         self.cursor = conn.cursor()
     
-    def execute(self,SQL):
+    def execute(self,SQL,**args):
         try:
-            self.cursor.execute(SQL)
+            if args:
+                self.cursor.execute(SQL,args)
+            else:
+                self.cursor.execute(SQL)
         except Exception as e:
             logger.info(e)
             self.conn.rollback()
@@ -61,56 +65,63 @@ class MyPostgreSQL:
         self.conn.commit()
 
 def DBSave(records):
+    psql = MyPostgreSQL(dbname='HLD',user='operator',password='5302469',host='127.0.0.1',port='2012')
+    SQL = 'DROP TABLE IF EXISTS "NCP";'
+    psql.execute(SQL)    
     SQL = '''
-    CREATE TABLE IF NOT EXISTS NCP (
+    CREATE TABLE IF NOT EXISTS "NCP" (
         id serial,
+        "updateTime" timestamp,
+        "continentName" varchar,
+        "countryName" varchar,
+        "provinceName" varchar,        
         "currentConfirmedCount"  integer,
         "confirmedCount"  integer,
         "suspectedCount"  integer,
         "curedCount"  integer,
         "deadCount"  integer,
-        "seriousCount"  integer,
-        "currentConfirmedIncr"  integer,
-        "confirmedIncr"  integer,
-        "suspectedIncr"  integer,
-        "curedIncr"  integer,
-        "deadIncr"  integer,
-        "seriousIncr"  integer,
-        "generalRemark" varchar,
-        "abroadRemark" varchar,
-        "remark1" varchar,
-        "remark2" varchar,
-        "remark3" varchar,
-        "remark4" varchar,
-        "remark5" varchar,
-        "note1" varchar,
-        "note2" varchar,
-        "note3" varchar,
-        "updateTime" timestamp
+        "comment" varchar       
     );
     '''
-    psql = MyPostgreSQL(dbname='HLD',user='operator',password='5302469',host='127.0.0.1',port='2012')
-    # psql.execute('DROP TABLE IF EXISTS "NCP";')
+    logger.info(SQL)
     psql.execute(SQL)
     # logger.info(records)
     # """简单实用，属于游标的对象方法"""
-    # # sql = f'insert into {name}(grid_id, data, published_at) values (%s, %s, %s);'
-    columns=tuple(records[0].keys())
-    name = 'ncp'
-    SQL = f"""insert into {name} ({','.join(columns)}) values ({','.join(['%s'] * len(columns))});"""
+    name = 'NCP'
+    columns = ["updateTime","continentName","countryName","provinceName","currentConfirmedCount","confirmedCount","suspectedCount","curedCount","deadCount","comment"]
+    # SQL = f"""insert into {name} ({','.join(columns)}) values ({','.join(['%s'] * len(columns))});"""
     # logger.info(SQL)
-    rows = list()
-    for record in records:
-        for k,v in record.items():
-            # logger.info([k,v])
-            rows.append([k,v])
-        # for k,v in record.keys():
-        #     rows.append([k,v])
-    logger.info(rows)
+    # logger.info('type(records)={}'.format(type(records)))
+    rows = []
+    logger.info('columns={}'.format(columns))
+    SQL = f"""insert into "{name}" ("{'","'.join(columns)}") values ({','.join(['%s'] * len(columns))}) ;"""
+    logger.info(SQL)
+    for record in records:       
+        row = []
+        country = record["countryName"]
+        for v in columns:           
+            if v in record:
+                if v =='updateTime':
+                    dt = record[v]
+                    # logger.info('record[{}]={}'.format(v,dt))
+                    d = datetime.datetime.fromtimestamp(dt/1000.0,tz=None)
+                    sd = d.strftime("%Y-%m-%d %H:%M:%S")
+                    record[v] = sd
+                    # logger.info('sd={} record[{}]={}'.format(sd,v,record[v]))
+                row.append(record[v])
+            else:
+                row.append(None)
+        if row:
+            logger.info('row={}'.format(row))
+            rows.append(row)
+            # psql.execute(SQL,row)
+            psql.cursor.execute(SQL,row)
+            psql.conn.commit()
+    # logger.info(rows)
     # psql.cursor.executemany(SQL,rows)
     # psql.conn.commit()
     # SQL = ''
-    # psql.cursor.executemany("""INSERT INTO bar(first_name,last_name) VALUES (%(first_name)s, %(last_name)s)""", namedict)
+    # psql.cursor.executemany(SQL, records)
     # fieldnames = tuple(records[0].keys())
     # logger.info(fieldnames)
     # # logger.info(SQL)
@@ -128,20 +139,15 @@ def DBSave(records):
     # psql.cursor.copy_from(csvfile, 'ncp',columns=fieldnames,sep=',', size=16384)
 
 def cxk():
-    url = "https://lab.isaaclin.cn/nCoV/api/overall"
-    response = requests.get(url,headers=headers,params=params,timeout=2)
+    url = "https://lab.isaaclin.cn/nCoV/api/area"
+    response = requests.get(url,headers=headers,params=params,timeout=9)
     json_reads = json.loads(response.text)
     records=json_reads["results"]
-    filename = 'NCP.json'
-    with open(filename,'w') as f:
-        json.dump(records,f,ensure_ascii=False)
+    # filename = 'NCP.json'
+    # with open(filename,'w') as f:
+    #     json.dump(records,f,ensure_ascii=False)
     # logger.info(type(records))
     DBSave(records)
-    
-
-    newTime = datetime.datetime.fromtimestamp(records[0]["updateTime"]/1000.0).strftime("%Y-%m-%d-%H")
- 
-    logger.info(newTime+"统计完成")
 
     
 # def fun():
