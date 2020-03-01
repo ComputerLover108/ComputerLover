@@ -95,61 +95,76 @@ def DBSave(records):
     for record in records:       
         row = []
         citys = []
-        for v in columns:           
-            if v in record:
-                if v =='updateTime':
-                    dt = record[v]
-                    # logger.info('record[{}]={}'.format(v,dt))
-                    d = datetime.datetime.fromtimestamp(dt/1000.0,tz=None)
-                    sd = d.strftime("%Y-%m-%d %H:%M:%S")
-                    record[v] = sd
-                    # logger.info('sd={} record[{}]={}'.format(sd,v,record[v]))
-                continentName = record["continentName"] if "continentName" in record else None
-                countryName = record["countryName"] if "countryName" in record else None
-                provinceName = record["provinceName"] if "provinceName" in record else None
-                # logger.info('cityRow[]='.format(cityRow))                 
-                if 'cities' in record:
-                    citys = record['cities']
-                    # logger.info('citysTable={}'.format(citys))
-                    if citys:                            
-                        for city in citys:
-                            # logger.info('city={}'.format(city))
-                            cityRow=[]
-                            if 'cityName' in city:
-                                cityName = city['cityName'] 
-                            else:
-                                continue 
-                            currentConfirmedCount = city["currentConfirmedCount"] if "currentConfirmedCount" in city else None
-                            confirmedCount = city["confirmedCount"] if "confirmedCount" in city else None
-                            suspectedCount = city["suspectedCount"] if "suspectedCount" in city else None
-                            curedCount = city["curedCount"] if "curedCount" in city else None
-                            deadCount = city["deadCount"] if "deadCount" in city else None
-                            comment = record['comment'] if "comment" in record else None
-                            cityRow.append(sd)
-                            cityRow.append(continentName)
-                            cityRow.append(countryName)
-                            cityRow.append(provinceName)                            
-                            cityRow.append(cityName)
-                            cityRow.append(currentConfirmedCount)
-                            cityRow.append(confirmedCount)
-                            cityRow.append(suspectedCount)
-                            cityRow.append(curedCount)
-                            cityRow.append(deadCount)
-                            cityRow.append(comment)
-                            # logger.info('cityRow={}'.format(cityRow))
-                            if cityRow:
-                                rows.append(cityRow)               
-                row.append(record[v])
-            else:
-                row.append(None)
+        if "updateTime" in record:
+            dt = record["updateTime"]
+            # logger.info('record[{}]={}'.format(v,dt))
+            d = datetime.datetime.fromtimestamp(dt/1000.0,tz=None)
+            sd = d.strftime("%Y-%m-%d %H:%M:%S")
+            updateTime = sd
+            continentName = record["continentName"] if "continentName" in record else None
+            countryName = record["countryName"] if "countryName" in record else None
+            provinceName = record["provinceName"] if "provinceName" in record else None
+            cityName = record["cityName"] if "cityName" in record else None              
+            currentConfirmedCount = record["currentConfirmedCount"] if "currentConfirmedCount" in record else None
+            confirmedCount = record["confirmedCount"] if "confirmedCount" in record else None
+            suspectedCount = record["suspectedCount"] if "suspectedCount" in record else None
+            curedCount = record["curedCount"] if "curedCount" in record else None
+            deadCount = record["deadCount"] if "deadCount" in record else None
+            comment = record['comment'] if "comment" in record else None
+            row.append(updateTime)
+            row.append(continentName)   
+            row.append(countryName)
+            row.append(provinceName)
+            row.append(cityName)
+            row.append(currentConfirmedCount)
+            row.append(confirmedCount)
+            row.append(suspectedCount)
+            row.append(curedCount)
+            row.append(deadCount)
+            row.append(comment)            
+            if 'cities' in record:
+                citys = record['cities']
+                # logger.info('citysTable={}'.format(citys))
+                if citys:                            
+                    for city in citys:
+                        # logger.info('city={}'.format(city))
+                        cityRow=[]
+                        if 'cityName' in city:
+                            cityName = city['cityName'] 
+                        else:
+                            continue 
+                        currentConfirmedCount = city["currentConfirmedCount"] if "currentConfirmedCount" in city else None
+                        confirmedCount = city["confirmedCount"] if "confirmedCount" in city else None
+                        suspectedCount = city["suspectedCount"] if "suspectedCount" in city else None
+                        curedCount = city["curedCount"] if "curedCount" in city else None
+                        deadCount = city["deadCount"] if "deadCount" in city else None
+                        comment = city['comment'] if "comment" in city else None
+                        cityRow.append(sd)
+                        cityRow.append(continentName)
+                        cityRow.append(countryName)
+                        cityRow.append(provinceName)                            
+                        cityRow.append(cityName)
+                        cityRow.append(currentConfirmedCount)
+                        cityRow.append(confirmedCount)
+                        cityRow.append(suspectedCount)
+                        cityRow.append(curedCount)
+                        cityRow.append(deadCount)
+                        cityRow.append(comment)
+                        # logger.info('cityRow={}'.format(cityRow))
+                        if cityRow:
+                            rows.append(cityRow)
+                else:
+                    cityName = None                                            
+        else:
+            continue     
         if row:
-            # logger.info('row={}'.format(row))
+            logger.info('row={}'.format(row))
             rows.append(row)
             # psql.execute(SQL,row)
             # psql.cursor.execute(SQL,row)
             # psql.conn.commit()
-    # for row in rows:
-    #     logger.info(row)
+    for row in rows:
+        logger.info(row)
     psql.cursor.executemany(SQL,rows)
     psql.conn.commit()
     # psql.cursor.copy_from(f, "NCP",columns=fieldnames,sep=',', null='\\N', size=16384)
