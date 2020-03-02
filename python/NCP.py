@@ -182,10 +182,10 @@ def crawl_NCP(url,params,timeout):
     response = requests.get(url,headers=headers,params=params,timeout=timeout)
     json_reads = json.loads(response.text)
     records=json_reads["results"]
-    # filename = 'NCP.json'
-    # with open(filename,'w') as f:
-    #     json.dump(records,f,ensure_ascii=False)
-    # logger.info(type(records))
+    filename = 'NCP.json'
+    with open(filename,'w') as f:
+        json.dump(records,f,ensure_ascii=False)
+    logger.info(type(records))
     DBSave(records)
 
     
@@ -197,7 +197,7 @@ def crawl_NCP(url,params,timeout):
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog = 'crawl NCP',description = '爬取新冠肺炎数据,默认爬取当天最新数据')
-    parser.add_argument('-a','--all', help='获得网站全部新冠肺炎数据，本地数据将被清除。')
+    parser.add_argument("-a","--all", help='获得网站全部新冠肺炎数据，本地数据将被清除。',action="store_true")
     args = parser.parse_args()    
     url = "https://lab.isaaclin.cn/nCoV/api/area"    
     params = {'latest': '0'}
