@@ -65,32 +65,55 @@ def DBSave(records):
     # psql = MyPostgreSQL(dbname='HLD',user='operator',password='5302469',host='127.0.0.1',port='2012')  
     SQL = '''
     CREATE TABLE IF NOT EXISTS "NCP" (
-        id serial,
-        "updateTime" timestamp ,
-        "continentName" varchar ,
-        "countryName" varchar ,
-        "provinceName" varchar,
-        "cityName" varchar,        
-        "currentConfirmedCount"  integer,
-        "confirmedCount"  integer,
-        "suspectedCount"  integer,
-        "curedCount"  integer,
-        "deadCount"  integer,
-        "comment" varchar       
+        id                      serial,
+        "update"                date not null,
+        "continentName"         varchar,
+        "countryName"           varchar,
+        "provinceName"          varchar,
+        "cityName"              varchar,        
+        "currentConfirmedCount" integer,
+        "confirmedCount"        integer,
+        "suspectedCount"        integer,
+        "curedCount"            integer,
+        "deadCount"             integer,
+        "comment"               varchar      
     );
+    '''
+    logger.info(SQL)
+    psql.execute(SQL)
+    SQL = '''
+        ALTER TABLE "NCP" 
+        ADD CONSTRAINT ncp_unique UNIQUE(
+            "update",
+            "continentName",
+            "countryName",
+            "provinceName",
+            "cityName"            
+        );    
     '''
     logger.info(SQL)
     psql.execute(SQL)    
     # logger.info(records)
     # """简单实用，属于游标的对象方法"""
     name = 'NCP'
-    columns = ["updateTime","continentName","countryName","provinceName","cityName","currentConfirmedCount","confirmedCount","suspectedCount","curedCount","deadCount","comment"]
+    columns = ["update","continentName","countryName","provinceName","cityName","currentConfirmedCount","confirmedCount","suspectedCount","curedCount","deadCount","comment"]
     # SQL = f"""insert into {name} ({','.join(columns)}) values ({','.join(['%s'] * len(columns))});"""
     # logger.info(SQL)
     # logger.info('type(records)={}'.format(type(records)))
     rows = []
     # logger.info('columns={}'.format(columns))
-    SQL = f"""insert into "{name}" ("{'","'.join(columns)}") values ({','.join(['%s'] * len(columns))}) ;"""
+    SQL = f"""
+        insert into "{name}" ("{'","'.join(columns)}") values ({','.join(['%s'] * len(columns))})
+        ON CONFLICT ON CONSTRAINT ncp_unique 
+        DO UPDATE SET 
+        "currentConfirmedCount" = EXCLUDED."currentConfirmedCount",
+        "confirmedCount" = EXCLUDED."confirmedCount",
+        "suspectedCount"= EXCLUDED."suspectedCount",
+        "curedCount" = EXCLUDED."curedCount",
+        "deadCount" = EXCLUDED."deadCount",
+        "comment" = EXCLUDED."comment"               
+        ;
+    """
     logger.info(SQL)
     for record in records:       
         row = []
@@ -99,18 +122,33 @@ def DBSave(records):
             dt = record["updateTime"]
             # logger.info('record[{}]={}'.format(v,dt))
             d = datetime.datetime.fromtimestamp(dt/1000.0,tz=None)
-            sd = d.strftime("%Y-%m-%d %H:%M:%S")
+            sd = d.strftime("%Y-%m-%d")
             updateTime = sd
             continentName = record["continentName"] if "continentName" in record else None
             countryName = record["countryName"] if "countryName" in record else None
             provinceName = record["provinceName"] if "provinceName" in record else None
-            cityName = record["cityName"] if "cityName" in record else None              
+            cityName = record["cityName"] if "cityName" in record else None
+            comment = record['comment'] if "comment" in record else None
+            
+            continentName = continentName if continentName else ''
+            countryName = countryName if countryName != continentName else '' 
+            provinceName = provinceName if provinceName != countryName else ''
+            cityName = cityName if cityName else ''
+            comment = comment if comment else ''
+            
             currentConfirmedCount = record["currentConfirmedCount"] if "currentConfirmedCount" in record else None
             confirmedCount = record["confirmedCount"] if "confirmedCount" in record else None
             suspectedCount = record["suspectedCount"] if "suspectedCount" in record else None
             curedCount = record["curedCount"] if "curedCount" in record else None
             deadCount = record["deadCount"] if "deadCount" in record else None
-            comment = record['comment'] if "comment" in record else None
+
+            currentConfirmedCount = currentConfirmedCount if isinstance(currentConfirmedCount,int) else 0
+            confirmedCount = confirmedCount if isinstance(confirmedCount,int) else 0
+            suspectedCount = suspectedCount if isinstance(suspectedCount,int) else 0
+            curedCount = curedCount if isinstance(curedCount,int) else 0
+            deadCount = deadCount if isinstance(deadCount,int) else 0
+
+
             row.append(updateTime)
             row.append(continentName)   
             row.append(countryName)
@@ -138,7 +176,16 @@ def DBSave(records):
                         suspectedCount = city["suspectedCount"] if "suspectedCount" in city else None
                         curedCount = city["curedCount"] if "curedCount" in city else None
                         deadCount = city["deadCount"] if "deadCount" in city else None
+
                         comment = city['comment'] if "comment" in city else None
+                        comment = comment if comment else ''
+
+                        currentConfirmedCount = currentConfirmedCount if isinstance(currentConfirmedCount,int) else 0
+                        confirmedCount = confirmedCount if isinstance(confirmedCount,int) else 0
+                        suspectedCount = suspectedCount if isinstance(suspectedCount,int) else 0
+                        curedCount = curedCount if isinstance(curedCount,int) else 0
+                        deadCount = deadCount if isinstance(deadCount,int) else 0
+
                         cityRow.append(sd)
                         cityRow.append(continentName)
                         cityRow.append(countryName)
@@ -202,7 +249,12 @@ if __name__ == '__main__':
     url = "https://lab.isaaclin.cn/nCoV/api/area"    
     params = {'latest': '0'}
     timeout = 9
-    psql = MyPostgreSQL(dbname='HLD',user='operator',password='5302469',host='127.0.0.1',port='2012')    
+    dbname = 'HLD'
+    user='operator'
+    password='5302469'
+    host='192.168.0.122'
+    port='2012'
+    psql = MyPostgreSQL(dbname=dbname,user=user,password=password,host=host,port=port)    
     if args.all:
         params['latest'] = 0
         SQL = 'DROP TABLE IF EXISTS "NCP";'
