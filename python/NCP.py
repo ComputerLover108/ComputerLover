@@ -61,38 +61,8 @@ class MyPostgreSQL:
             self.cursor.execute(SQL)
         self.conn.commit()
 
-def DBSave(records):
-    # psql = MyPostgreSQL(dbname='HLD',user='operator',password='5302469',host='127.0.0.1',port='2012')  
-    SQL = '''
-    CREATE TABLE IF NOT EXISTS "NCP" (
-        id                      serial,
-        "update"                date not null,
-        "continentName"         varchar,
-        "countryName"           varchar,
-        "provinceName"          varchar,
-        "cityName"              varchar,        
-        "currentConfirmedCount" integer,
-        "confirmedCount"        integer,
-        "suspectedCount"        integer,
-        "curedCount"            integer,
-        "deadCount"             integer,
-        "comment"               varchar      
-    );
-    '''
-    logger.info(SQL)
-    psql.execute(SQL)
-    SQL = '''
-        ALTER TABLE "NCP" 
-        ADD CONSTRAINT ncp_unique UNIQUE(
-            "update",
-            "continentName",
-            "countryName",
-            "provinceName",
-            "cityName"            
-        );    
-    '''
-    logger.info(SQL)
-    psql.execute(SQL)    
+def DBSave(records,**extra):
+    # psql = MyPostgreSQL(dbname='HLD',user='operator',password='5302469',host='127.0.0.1',port='2012')    
     # logger.info(records)
     # """简单实用，属于游标的对象方法"""
     name = 'NCP'
@@ -114,7 +84,7 @@ def DBSave(records):
         "comment" = EXCLUDED."comment"               
         ;
     """
-    logger.info(SQL)
+    # logger.info(SQL)
     for record in records:       
         row = []
         citys = []
@@ -134,8 +104,14 @@ def DBSave(records):
             countryName = countryName if countryName != continentName else '' 
             provinceName = provinceName if provinceName != countryName else ''
             cityName = cityName if cityName else ''
+            # china_json 数据处理
+            if extra:
+                continentName = extra['continentName']
+                countryName = extra['countryName']
+            if "generalRemark" in record:
+                comment = record['generalRemark']            
             comment = comment if comment else ''
-            
+           
             currentConfirmedCount = record["currentConfirmedCount"] if "currentConfirmedCount" in record else None
             confirmedCount = record["confirmedCount"] if "confirmedCount" in record else None
             suspectedCount = record["suspectedCount"] if "suspectedCount" in record else None
@@ -147,7 +123,11 @@ def DBSave(records):
             suspectedCount = suspectedCount if isinstance(suspectedCount,int) else 0
             curedCount = curedCount if isinstance(curedCount,int) else 0
             deadCount = deadCount if isinstance(deadCount,int) else 0
-
+            # 2月9日以前没有当前确诊记录，只有确诊记录。
+            logger.info('%r<%r=%r',d,datetime.datetime(2020,2,9),d<datetime.datetime(2020,2,9))
+            if d <= datetime.datetime(2020,2,9,0,0):
+                logger.info('update=%r,currentConfirmedCount=%r,confirmedCount=%r,suspectedCount=%r,curedCount=%r,deadCount=%r',d,currentConfirmedCount,confirmedCount,suspectedCount,curedCount,deadCount)                
+                currentConfirmedCount = confirmedCount if currentConfirmedCount==0 else currentConfirmedCount
 
             row.append(updateTime)
             row.append(continentName)   
@@ -185,6 +165,9 @@ def DBSave(records):
                         suspectedCount = suspectedCount if isinstance(suspectedCount,int) else 0
                         curedCount = curedCount if isinstance(curedCount,int) else 0
                         deadCount = deadCount if isinstance(deadCount,int) else 0
+                        if d <= datetime.datetime(2020,2,9,0,0):
+                            logger.info('update=%r,currentConfirmedCount=%r,confirmedCount=%r,suspectedCount=%r,curedCount=%r,deadCount=%r',d,currentConfirmedCount,confirmedCount,suspectedCount,curedCount,deadCount)
+                            currentConfirmedCount = confirmedCount if currentConfirmedCount==0 else currentConfirmedCount
 
                         cityRow.append(sd)
                         cityRow.append(continentName)
@@ -205,13 +188,13 @@ def DBSave(records):
         else:
             continue     
         if row:
-            logger.info('row={}'.format(row))
+            # logger.info('row={}'.format(row))
             rows.append(row)
             # psql.execute(SQL,row)
             # psql.cursor.execute(SQL,row)
             # psql.conn.commit()
-    for row in rows:
-        logger.info(row)
+    # for row in rows:
+    #     logger.info(row)
     psql.cursor.executemany(SQL,rows)
     psql.conn.commit()
     # psql.cursor.copy_from(f, "NCP",columns=fieldnames,sep=',', null='\\N', size=16384)
@@ -227,13 +210,28 @@ def DBSave(records):
 
 def crawl_NCP(url,params,timeout):
     response = requests.get(url,headers=headers,params=params,timeout=timeout)
-    json_reads = json.loads(response.text)
-    records=json_reads["results"]
-    filename = 'NCP.json'
-    with open(filename,'w') as f:
-        json.dump(records,f,ensure_ascii=False)
-    logger.info(type(records))
-    DBSave(records)
+    # json_reads = json.loads(response.text)
+    logger.info('response.status_code=%r',response.status_code)
+    if response.status_code==200:
+        json_reads = response.json()
+        logger.info('json_reads=%r',json_reads)
+        records=json_reads["results"]
+        if url == "https://lab.isaaclin.cn/nCoV/api/area" :
+            logger.info('crawl NCP data')
+            filename = 'NCP.json'
+            DBSave(records)
+        if url == "https://lab.isaaclin.cn/nCoV/api/overall" :
+            logger.info('crawl china NCP data')
+            filename = 'NCP_china.json'
+            extra = {'continentName':'亚洲','countryName':'中国'}
+            DBSave(records,**extra)
+        with open(filename,'w') as f:
+            json.dump(records,f,ensure_ascii=False)
+    if response.status_code>=500:
+        msg = '服务端拒绝服务：{}'.format(response.status_code)
+        logger.error(msg)
+        print(msg)
+    # logger.info(type(records))
 
     
 # def fun():
@@ -245,8 +243,7 @@ def crawl_NCP(url,params,timeout):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog = 'crawl NCP',description = '爬取新冠肺炎数据,默认爬取当天最新数据')
     parser.add_argument("-a","--all", help='获得网站全部新冠肺炎数据，本地数据将被清除。',action="store_true")
-    args = parser.parse_args()    
-    url = "https://lab.isaaclin.cn/nCoV/api/area"    
+    args = parser.parse_args()        
     params = {'latest': '0'}
     timeout = 9
     dbname = 'HLD'
@@ -258,8 +255,41 @@ if __name__ == '__main__':
     if args.all:
         params['latest'] = 0
         SQL = 'DROP TABLE IF EXISTS "NCP";'
-        psql.execute(SQL) 
+        psql.execute(SQL)
+        SQL = '''
+        CREATE TABLE IF NOT EXISTS "NCP" (
+            id                      serial,
+            "update"                date not null,
+            "continentName"         varchar,
+            "countryName"           varchar,
+            "provinceName"          varchar,
+            "cityName"              varchar,        
+            "currentConfirmedCount" integer,
+            "confirmedCount"        integer,
+            "suspectedCount"        integer,
+            "curedCount"            integer,
+            "deadCount"             integer,
+            "comment"               varchar      
+        );
+        '''
+        # logger.info(SQL)
+        psql.execute(SQL)
+        SQL = '''
+            ALTER TABLE "NCP" 
+            ADD CONSTRAINT ncp_unique UNIQUE(
+                "update",
+                "continentName",
+                "countryName",
+                "provinceName",
+                "cityName"            
+            );    
+        '''
+        # logger.info(SQL)
+        psql.execute(SQL)           
     else:
         params['latest'] = 1
+    url = "https://lab.isaaclin.cn/nCoV/api/area"
+    crawl_NCP(url=url,params=params,timeout=timeout)
+    url = "https://lab.isaaclin.cn/nCoV/api/overall"
     crawl_NCP(url=url,params=params,timeout=timeout)
 
