@@ -379,8 +379,8 @@ def DXY_csv_to_database(filename):
                     d = datetime.datetime.fromisoformat(dt)
                 else:
                     continue
-                if d < datetime.datetime(2020,3,1,0,0):
-                    continue
+                # if d < datetime.datetime(2020,3,1,0,0):
+                #     continue
                 sd = d.strftime("%Y-%m-%d")
                 updateTime = sd
                 continentName = record["continentName"] if "continentName" in record else None
@@ -403,11 +403,11 @@ def DXY_csv_to_database(filename):
                     curedCount = record["city_curedCount"] if "city_curedCount" in record else None
                     deadCount = record["city_deadCount"] if "city_deadCount" in record else None
 
-                    currentConfirmedCount = currentConfirmedCount if isinstance(currentConfirmedCount,int) else 0
-                    confirmedCount = confirmedCount if isinstance(confirmedCount,int) else 0
-                    suspectedCount = suspectedCount if isinstance(suspectedCount,int) else 0
-                    curedCount = curedCount if isinstance(curedCount,int) else 0
-                    deadCount = deadCount if isinstance(deadCount,int) else 0                    
+                    currentConfirmedCount = currentConfirmedCount if currentConfirmedCount else 0
+                    confirmedCount = confirmedCount if confirmedCount else 0
+                    suspectedCount = suspectedCount if suspectedCount else 0
+                    curedCount = curedCount if curedCount else 0
+                    deadCount = deadCount if deadCount else 0                    
 
                     cityRow.append(sd)
                     cityRow.append(continentName)
@@ -430,11 +430,11 @@ def DXY_csv_to_database(filename):
                     curedCount = record["province_curedCount"] if "province_curedCount" in record else None
                     deadCount = record["province_deadCount"] if "province_deadCount" in record else None
 
-                    currentConfirmedCount = currentConfirmedCount if isinstance(currentConfirmedCount,int) else 0
-                    confirmedCount = confirmedCount if isinstance(confirmedCount,int) else 0
-                    suspectedCount = suspectedCount if isinstance(suspectedCount,int) else 0
-                    curedCount = curedCount if isinstance(curedCount,int) else 0
-                    deadCount = deadCount if isinstance(deadCount,int) else 0                    
+                    currentConfirmedCount = currentConfirmedCount if currentConfirmedCount else 0
+                    confirmedCount = confirmedCount if confirmedCount else 0
+                    suspectedCount = suspectedCount if suspectedCount else 0
+                    curedCount = curedCount if curedCount else 0
+                    deadCount = deadCount if deadCount else 0                      
 
                     provinceRow.append(sd)
                     provinceRow.append(continentName)
