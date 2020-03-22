@@ -8,6 +8,7 @@ import psycopg2
 import csv
 import logging
 import argparse
+import random
 from bs4 import BeautifulSoup
 import re
 
@@ -23,13 +24,6 @@ logger.addHandler(handler)
 # console.setLevel(logging.INFO)
 # logger.addHandler(console)
 
-
-
-ua = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) ' \
-     'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77' \
-     ' Safari/537.36'
-headers = {'User-Agent': ua}
-
 user_agent_list = [
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36',
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.132 Safari/537.36',
@@ -37,8 +31,11 @@ user_agent_list = [
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.5 Safari/605.1.15',
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36 Edge/16.16299',
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:63.0) Gecko/20100101 Firefox/63.0'
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:63.0) Gecko/20100101 Firefox/63.0',
+    'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.4150.1 Iron Safari/537.36',
+    'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Mobile Safari/537.36'
 ]
+headers = {'User-Agent': random.choice(user_agent_list)}
 
 class MyPostgreSQL:
     def __init__(self,dbname,user,password,host,port):
@@ -289,66 +286,63 @@ def crawl_NCP_dingxiang(url,timeout):
 #     th.start()
     # showinfo(title='提示', message='后台数据统计已开始\n请稍等，完成后将会有提示！')
 
-class Crawler:
-    def __init__(self):
-        self.session = requests.session()
-        self.crawl_timestamp = int()
+def crawl_NCP_qq():
+    # 腾讯数据接口
+    # url='https://view.inews.qq.com/g2/getOnsInfo?name=disease_h5'
+    # url='https://view.inews.qq.com/g2/getOnsInfo?name=disease_other'    
+    # 国内
+    url='https://view.inews.qq.com/g2/getOnsInfo'
+    headers = {'User-Agent': random.choice(user_agent_list)}
+    timeout = 9
+    params = {}
+    params['name'] = 'disease_h5'
+    params['callback'] = 'jQuery341001657575837432268_1581070969707'
+    # params['_'] = '1581070969708'
+    params['_'] = int(time.time()*1000)
+    # url = 'https://view.inews.qq.com/g2/getOnsInfo?name=disease_h5&callback=jQuery341001657575837432268_1581070969707&_=1581070969708'
+    url='https://view.inews.qq.com/g2/getOnsInfo?name=disease_h5'
+    response = requests.get(url,headers=headers,params=params,timeout=timeout)
+    if response.status_code==200:
+        content = response.text
+        a = params['callback']+'('
+        b = content.split(a)[1].split(')')[0]
+        c = json.loads(b)
+        china_json = json.loads(c['data'])
+        # logger.info('china_json=%r',china_json.keys())    
 
-    def run(self):
-        while True:
-            self.crawler()
-            time.sleep(60)
+    # 国外
+    url = 'https://view.inews.qq.com/g2/getOnsInfo'
+    params['name'] = 'disease_foreign'
+    params['callback'] = 'jQuery34108116985782396278_1584837309333'
+    params['_'] =  int(time.time()*1000)
+    response = requests.get(url,headers=headers,params=params,timeout=timeout)
+    # logger.info('url=%r\nheaders=%r\n,params=%r\n,timeout=%r\n',url,headers,params,timeout)
+    if response.status_code==200:
+        content = response.text
+        a = params['callback']+'('
+        b = content.split(a)[1].split(')')[0]
+        c = json.loads(b)
+        foreign_json = json.loads(c['data'])
+        # logger.info('foreign_json=%r',foreign_json.keys())
 
-    def crawler(self):
-        while True:
-            self.session.headers.update(
-                {
-                    'user-agent': random.choice(user_agent_list)
-                }
-            )
-            self.crawl_timestamp = int(time.time() * 1000)
-            try:
-                r = self.session.get(url='https://ncov.dxy.cn/ncovh5/view/pneumonia')
-            except requests.exceptions.ChunkedEncodingError:
-                continue
-            soup = BeautifulSoup(r.content, 'lxml')
+    url='https://view.inews.qq.com/g2/getOnsInfo'
+    del params['callback']
+    del params['_']
+    params['name']='disease_other'
+    response = requests.get(url,headers=headers,params=params,timeout=timeout)
+    # logger.info('url=%r\nheaders=%r\n,params=%r\n,timeout=%r\n',url,headers,params,timeout)    
+    if response.status_code==200:
+        content = response.json()['data']
+        other_json=json.loads(content)
+        logger.info('other_json=%r',other_json.keys())
+        logger.info(other_json)
 
-            # overall_information = re.search(r'(\{"id".*\}\})\}', str(soup.find('script', attrs={'id': 'getStatisticsService'})))
-            # if overall_information:
-            #     self.overall_parser(overall_information=overall_information)
-
-            # area_information = re.search(r'\[(.*)\]', str(soup.find('script', attrs={'id': 'getAreaStat'})))
-            # if area_information:
-            #     self.area_parser(area_information=area_information)
-
-            # abroad_information = re.search(r'\[(.*)\]', str(soup.find('script', attrs={'id': 'getListByCountryTypeService2true'})))
-            # if abroad_information:
-            #     self.abroad_parser(abroad_information=abroad_information)
-
-            # news_chinese = re.search(r'\[(.*?)\]', str(soup.find('script', attrs={'id': 'getTimelineServiceundefined'})))
-            # if news_chinese:
-            #     self.news_parser(news=news_chinese)
-
-            # news_english = re.search(r'\[(.*?)\]', str(soup.find('script', attrs={'id': 'getTimelineService2'})))
-            # if news_english:
-            #     self.news_parser(news=news_english)
-
-            # rumors = re.search(r'\[(.*?)\]', str(soup.find('script', attrs={'id': 'getIndexRumorList'})))
-            # if rumors:
-            #     self.rumor_parser(rumors=rumors)
-
-            # if not overall_information or \
-            #         not area_information or \
-            #         not abroad_information or \
-            #         not news_chinese or \
-            #         not news_english or \
-            #         not rumors:
-            #     time.sleep(3)
-            #     continue
-
-            # break
-
-        logger.info('Successfully crawled.')
+    data=china_json.copy()
+    data.update(foreign_json)
+    # data.update(other_json)
+    # logger.info('keys=%r',data.keys())
+    # # logger.info('crawl_NCP_qq data=%r',c)
+    # return data
 
 def DXY_csv_to_database(filename):
     # logger.info("filename is %r",filename)
@@ -480,7 +474,7 @@ if __name__ == '__main__':
     dbname = 'HLD'
     user='operator'
     password='5302469'
-    host='192.168.0.111'
+    host='localhost'
     port='2012'
     psql = MyPostgreSQL(dbname=dbname,user=user,password=password,host=host,port=port)    
     if args.all:
@@ -527,9 +521,10 @@ if __name__ == '__main__':
         with open(filename, 'r') as f:
             data = json.load(f)
             # logger.info('type(data)=%r',type(data))        
-    url = "https://lab.isaaclin.cn/nCoV/api/area"
-    crawl_NCP(url=url,params=params,timeout=timeout)
-    url = "https://lab.isaaclin.cn/nCoV/api/overall"
-    crawl_NCP(url=url,params=params,timeout=timeout)
-    url = 'https://ncov.dxy.cn/ncovh5/view/pneumonia'
-    crawl_NCP_dingxiang(url=url,timeout=timeout)
+    # url = "https://lab.isaaclin.cn/nCoV/api/area"
+    # crawl_NCP(url=url,params=params,timeout=timeout)
+    # url = "https://lab.isaaclin.cn/nCoV/api/overall"
+    # crawl_NCP(url=url,params=params,timeout=timeout)
+    # url = 'https://ncov.dxy.cn/ncovh5/view/pneumonia'
+    # crawl_NCP_dingxiang(url=url,timeout=timeout)
+    crawl_NCP_qq()
