@@ -234,7 +234,7 @@ def crawl_NCP(url,params,timeout):
     logger.info('response.status_code=%r',response.status_code)
     if response.status_code==200:
         json_reads = response.json()
-        logger.info('json_reads=%r',json_reads)
+        # logger.info('json_reads=%r',json_reads)
         records=json_reads["results"]
         if url == "https://lab.isaaclin.cn/nCoV/api/area" :
             logger.info('crawl NCP data')
@@ -359,7 +359,7 @@ def crawl_NCP_qq():
             dead = record['dead']
             row=[update,continent,country,confirmation,totalConfirmation,suspect,cure,dead,remark]
             rows.append(row)
-            logger.info('%r\n',row)        
+            # logger.info('%r\n',row)        
         records = data['foreignList']
         for record in records:
             remark = ''
@@ -473,8 +473,8 @@ def crawl_NCP_qq():
         row.append(record['dead'])
         row.append(record['remark'])
         rows.append(row)
-    logger.info('totoalProvinceRecords %r',len(totoalProvinceRecords))
-    logger.info('totalCityRecords %r',len(totalCityRecords))
+    logger.info('totoalProvinceRecords 共有%r条记录。',len(totoalProvinceRecords))
+    logger.info('totalCityRecords 共有%r条记录。',len(totalCityRecords))
     name = "country"
     constraint='country_unique'
     columns = ["update","country","province","confirmation","totalConfirmation","suspect","cure","dead","remark"]
@@ -708,10 +708,10 @@ if __name__ == '__main__':
         with open(filename, 'r') as f:
             data = json.load(f)
             # logger.info('type(data)=%r',type(data))        
-    # url = "https://lab.isaaclin.cn/nCoV/api/area"
-    # crawl_NCP(url=url,params=params,timeout=timeout)
-    # url = "https://lab.isaaclin.cn/nCoV/api/overall"
-    # crawl_NCP(url=url,params=params,timeout=timeout)
+    crawl_NCP_qq()
+    url = "https://lab.isaaclin.cn/nCoV/api/area"
+    crawl_NCP(url=url,params=params,timeout=timeout)
+    url = "https://lab.isaaclin.cn/nCoV/api/overall"
+    crawl_NCP(url=url,params=params,timeout=timeout)
     # url = 'https://ncov.dxy.cn/ncovh5/view/pneumonia'
     # crawl_NCP_dingxiang(url=url,timeout=timeout)
-    crawl_NCP_qq()
