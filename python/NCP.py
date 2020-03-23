@@ -9,8 +9,8 @@ import csv
 import logging
 import argparse
 import random
-from bs4 import BeautifulSoup
 import re
+from bs4 import BeautifulSoup
 
 logger = logging.getLogger(__name__)
 logger.setLevel(level = logging.INFO)
@@ -33,7 +33,9 @@ user_agent_list = [
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36',
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:63.0) Gecko/20100101 Firefox/63.0',
     'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.4150.1 Iron Safari/537.36',
-    'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Mobile Safari/537.36'
+    'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Mobile Safari/537.36',
+    'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.81 Safari/537.36 Maxthon/5.3.8.2000',
+    'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:68.9) Gecko/20100101 Goanna/4.4 Firefox/68.9 PaleMoon/28.8.4'
 ]
 headers = {'User-Agent': random.choice(user_agent_list)}
 
@@ -280,11 +282,6 @@ def crawl_NCP_dingxiang(url,timeout):
     rumors = re.search(r'\[(.*?)\]', str(soup.find('script', attrs={'id': 'getIndexRumorList'})))
     # if rumors:
     #     self.rumor_parser(rumors=rumors)       
-# def fun():
-#     th=threading.Thread(target=cxk)
-#     th.setDaemon(True)#守护线程
-#     th.start()
-    # showinfo(title='提示', message='后台数据统计已开始\n请稍等，完成后将会有提示！')
 
 def crawl_NCP_qq():
     # 腾讯数据接口
@@ -334,15 +331,205 @@ def crawl_NCP_qq():
     if response.status_code==200:
         content = response.json()['data']
         other_json=json.loads(content)
-        logger.info('other_json=%r',other_json.keys())
-        logger.info(other_json)
+        # logger.info(other_json)
 
+    rows=[]
+    row=[]
+    totoalProvinceRecords=[]
+    totalCityRecords=[]
     data=china_json.copy()
     data.update(foreign_json)
-    # data.update(other_json)
-    # logger.info('keys=%r',data.keys())
-    # # logger.info('crawl_NCP_qq data=%r',c)
-    # return data
+    data.update(other_json)
+    # logger.info('chinaDayList=%r',data['chinaDayList'])
+    # logger.info('foreignList=%r',data['foreignList'])
+    # logger.info('areaTree=%r',data['areaTree'])     
+    if data:
+        records = data['chinaDayList']
+        for record in records:
+            continent = '亚洲'
+            country = '中国'
+            remark = '' 
+            temp=record['date'].split('.')
+            sd = '2020-'+temp[0]+'-'+temp[1]
+            update = datetime.date.fromisoformat(sd).isoformat()
+            confirmation=record['nowConfirm']
+            totalConfirmation=record['confirm']
+            suspect = record['suspect']
+            cure = record['heal']
+            dead = record['dead']
+            row=[update,continent,country,confirmation,totalConfirmation,suspect,cure,dead,remark]
+            rows.append(row)
+            logger.info('%r\n',row)        
+        records = data['foreignList']
+        for record in records:
+            remark = ''
+            temp=record['date'].split('.')
+            sd = '2020-'+temp[0]+'-'+temp[1]
+            update = datetime.date.fromisoformat(sd).isoformat()
+            continent = record['continent']            
+            country = record['name']
+            confirmation=record['nowConfirm']
+            totalConfirmation=record['confirm']
+            suspect = record['suspect']
+            cure = record['heal']
+            dead = record['dead']
+            row=[update,continent,country,confirmation,totalConfirmation,suspect,cure,dead,remark]
+            if 'children' in record:
+                provinceRecords = record['children']
+                for record in provinceRecords:
+                    temp=record['date'].split('.')
+                    sd = '2020-'+temp[0]+'-'+temp[1]                
+                    record['remark'] = ''
+                    record['country'] = country
+                    record['province'] = record.pop('name')
+                    record['update'] = datetime.date.fromisoformat(sd).isoformat()
+                    # record['confirmation']=record.pop('nowConfirm')
+                    record['totalConfirmation']=record.pop('confirm')
+                    record['cure'] = record.pop('heal')
+                    totoalProvinceRecords.append(record)                  
+            rows.append(row)
+        records = data['areaTree']
+        for record in records:
+            update = datetime.date.fromtimestamp(time.time()).isoformat()
+            continent = '亚洲'
+            country = '中国'
+            remark = ''
+            confirmation=record['total']['nowConfirm']
+            totalConfirmation=record['total']['confirm']
+            suspect = record['total']['suspect']
+            cure = record['total']['heal']
+            dead = record['total']['dead']
+            row=[update,continent,country,confirmation,totalConfirmation,suspect,cure,dead,remark]
+            # logger.info('china row=%r',row)
+            rows.append(row)
+            if 'children' in record:
+                provinceRecords = record['children']
+                for x in provinceRecords:
+                    provinceRecord={}
+                    provinceRecord['update'] = update
+                    provinceRecord['country'] = country
+                    provinceRecord['province'] = x['name']
+                    provinceRecord['confirmation']=x['total']['nowConfirm']
+                    provinceRecord['totalConfirmation']=x['total']['confirm']
+                    provinceRecord['suspect'] = x['total']['suspect']
+                    provinceRecord['cure'] = x['total']['heal']
+                    provinceRecord['dead'] = x['total']['dead']
+                    provinceRecord['remark'] = ''
+                    totoalProvinceRecords.append(provinceRecord)
+                    province = provinceRecord['province']
+                    if 'children' in x:
+                        cityRecords = x['children']
+                        for xx in cityRecords:
+                            cityRecord={}
+                            cityRecord['update'] = update
+                            cityRecord['country'] = country
+                            cityRecord['province'] = province
+                            cityRecord['city'] = xx['name']
+                            cityRecord['confirmation']=xx['total']['nowConfirm']
+                            cityRecord['totalConfirmation']=xx['total']['confirm']
+                            cityRecord['suspect'] = xx['total']['suspect']
+                            cityRecord['cure'] = xx['total']['heal']
+                            cityRecord['dead'] = xx['total']['dead']
+                            cityRecord['remark'] = ''
+                            totalCityRecords.append(cityRecord)                                                             
+                            # logger.info('confirmation=%r',cityRecord['confirmation'])
+                            # logger.info('xx[total][nowConfirm]=%r',xx['total']['nowConfirm'])
+                        
+
+    name = 'golbal'
+    constraint = 'global_unique'
+    columns = ["update","continent","country","confirmation","totalConfirmation","suspect","cure","dead","remark"]
+    SQL = f"""
+        insert into "{name}" ("{'","'.join(columns)}") values ({','.join(['%s'] * len(columns))})    
+        ON CONFLICT ON CONSTRAINT "{constraint}" 
+        DO UPDATE SET 
+        "confirmation" = EXCLUDED."confirmation",
+        "totalConfirmation" = EXCLUDED."totalConfirmation",
+        "suspect"= EXCLUDED."suspect",
+        "cure" = EXCLUDED."cure",
+        "dead" = EXCLUDED."dead",
+        "remark" = EXCLUDED."remark"               
+	;        
+    """
+    logger.info('keys=%r',data.keys())
+    # logger.info('data=%r\n',data)
+    # for x in totoalProvinceRecords:
+    #     logger.info(x)        
+    psql.cursor.executemany(SQL,rows)
+    psql.conn.commit()
+
+    rows=[]    
+    for record in totoalProvinceRecords:
+        row=[]
+        record['confirmation'] = record['confirmation'] if 'confirmation' in record else 0
+        record['suspect'] = record['suspect'] if 'suspect' in record else 0
+        row.append(record['update'])
+        row.append(record['country'])
+        row.append(record['province'])
+        row.append(record['confirmation'])
+        row.append(record['totalConfirmation'])
+        row.append(record['suspect'])
+        row.append(record['cure'])
+        row.append(record['dead'])
+        row.append(record['remark'])
+        rows.append(row)
+    logger.info('totoalProvinceRecords %r',len(totoalProvinceRecords))
+    logger.info('totalCityRecords %r',len(totalCityRecords))
+    name = "country"
+    constraint='country_unique'
+    columns = ["update","country","province","confirmation","totalConfirmation","suspect","cure","dead","remark"]
+    SQL = f"""
+        insert into "{name}" ("{'","'.join(columns)}") values ({','.join(['%s'] * len(columns))})    
+        ON CONFLICT ON CONSTRAINT "{constraint}" 
+        DO UPDATE SET 
+        "confirmation" = EXCLUDED."confirmation",
+        "totalConfirmation" = EXCLUDED."totalConfirmation",
+        "suspect"= EXCLUDED."suspect",
+        "cure" = EXCLUDED."cure",
+        "dead" = EXCLUDED."dead",
+        "remark" = EXCLUDED."remark"               
+    ;        
+    """
+    psql.cursor.executemany(SQL,rows)
+    psql.conn.commit()
+
+    rows=[]    
+    for record in totalCityRecords:
+        row=[]
+        record['confirmation'] = record['confirmation'] if 'confirmation' in record else 0
+        record['suspect'] = record['suspect'] if 'suspect' in record else 0
+        record['totalConfirmation'] = record['totalConfirmation'] if 'totalConfirmation' in record else 0
+        row.append(record['update'])
+        row.append(record['country'])
+        row.append(record['province'])
+        row.append(record['city'])
+        row.append(record['confirmation'])
+        row.append(record['totalConfirmation'])
+        row.append(record['suspect'])
+        row.append(record['cure'])
+        row.append(record['dead'])
+        row.append(record['remark'])
+        rows.append(row)
+        # logger.info('cityRecord=%r',record)
+    name = "province"
+    constraint='province_unique'
+    columns = ["update","country","province","city","confirmation","totalConfirmation","suspect","cure","dead","remark"]
+    SQL = f"""
+        insert into "{name}" ("{'","'.join(columns)}") values ({','.join(['%s'] * len(columns))})    
+        ON CONFLICT ON CONSTRAINT "{constraint}" 
+        DO UPDATE SET 
+        "confirmation" = EXCLUDED."confirmation",
+        "totalConfirmation" = EXCLUDED."totalConfirmation",
+        "suspect"= EXCLUDED."suspect",
+        "cure" = EXCLUDED."cure",
+        "dead" = EXCLUDED."dead",
+        "remark" = EXCLUDED."remark"               
+    ;        
+    """
+    # logger.info(SQL)
+    # logger.info(rows)
+    psql.cursor.executemany(SQL,rows)
+    psql.conn.commit()         
 
 def DXY_csv_to_database(filename):
     # logger.info("filename is %r",filename)
@@ -465,13 +652,13 @@ def DXY_csv_to_database(filename):
                   
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog = 'crawl NCP',description = '爬取新冠肺炎数据,默认爬取当天最新数据')
-    parser.add_argument("-a","--all", help='获得网站全部新冠肺炎数据，本地数据将被清除。')
+    parser.add_argument("-a","--all",action="store_true",help='获得网站全部新冠肺炎数据，本地数据将被清除。')
     parser.add_argument("-c","--cvs",help='从指定csv文件中提取数据')
     parser.add_argument("-j","--json",help='从指定json文件中提取数据')
     args = parser.parse_args()        
     params = {'latest': '0'}
     timeout = 9
-    dbname = 'HLD'
+    dbname = 'COVID-19'
     user='operator'
     password='5302469'
     host='localhost'
