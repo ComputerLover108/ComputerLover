@@ -73,29 +73,10 @@ class MyPostgreSQL:
         self.conn.commit()
 
 def DBSave(records,**extra):
-    # psql = MyPostgreSQL(dbname='HLD',user='operator',password='5302469',host='127.0.0.1',port='2012')    
-    # logger.info(records)
-    # """简单实用，属于游标的对象方法"""
-    name = 'NCP'
-    columns = ["update","continentName","countryName","provinceName","cityName","currentConfirmedCount","confirmedCount","suspectedCount","curedCount","deadCount","comment"]
-    # SQL = f"""insert into {name} ({','.join(columns)}) values ({','.join(['%s'] * len(columns))});"""
-    # logger.info(SQL)
-    # logger.info('type(records)={}'.format(type(records)))
-    rows = []
-    # logger.info('columns={}'.format(columns))
-    SQL = f"""
-        insert into "{name}" ("{'","'.join(columns)}") values ({','.join(['%s'] * len(columns))})
-        ON CONFLICT ON CONSTRAINT ncp_unique 
-        DO UPDATE SET 
-        "currentConfirmedCount" = EXCLUDED."currentConfirmedCount",
-        "confirmedCount" = EXCLUDED."confirmedCount",
-        "suspectedCount"= EXCLUDED."suspectedCount",
-        "curedCount" = EXCLUDED."curedCount",
-        "deadCount" = EXCLUDED."deadCount",
-        "comment" = EXCLUDED."comment"               
-        ;
-    """
-    # logger.info(SQL)
+    rows=[]
+    global_rows=[]
+    country_rows=[]
+    province_rows=[]
     for record in records:       
         row = []
         citys = []
@@ -103,11 +84,12 @@ def DBSave(records,**extra):
             dt = record["updateTime"]
             # logger.info('type(dt)=%r,dt=%r',type(dt),dt)
             # logger.info('%r\n',record)
-            if type(dt)=='int':
+            if isinstance(dt,int):
                 d = datetime.datetime.fromtimestamp(dt/1000.0,tz=None)
-            elif type(dt)=='str':
+            elif isinstance(dt,int):
                 d = datetime.datetime.fromisoformat(dt)
             else:
+                # logger.info('时间处理失败！')
                 continue
             sd = d.strftime("%Y-%m-%d")
             updateTime = sd
@@ -141,7 +123,7 @@ def DBSave(records,**extra):
             curedCount = curedCount if isinstance(curedCount,int) else 0
             deadCount = deadCount if isinstance(deadCount,int) else 0
             # 2月9日以前没有当前确诊记录，只有确诊记录。
-            logger.info('%r<%r=%r',d,datetime.datetime(2020,2,9),d<datetime.datetime(2020,2,9))
+            # logger.info('%r<%r=%r',d,datetime.datetime(2020,2,9),d<datetime.datetime(2020,2,9))
             if d <= datetime.datetime(2020,2,9,0,0):
                 logger.info('update=%r,currentConfirmedCount=%r,confirmedCount=%r,suspectedCount=%r,curedCount=%r,deadCount=%r',d,currentConfirmedCount,confirmedCount,suspectedCount,curedCount,deadCount)                
                 currentConfirmedCount = confirmedCount if currentConfirmedCount==0 else currentConfirmedCount
@@ -156,7 +138,10 @@ def DBSave(records,**extra):
             row.append(suspectedCount)
             row.append(curedCount)
             row.append(deadCount)
-            row.append(comment)            
+            row.append(comment)
+            global_row = [updateTime,continentName,countryName,currentConfirmedCount,confirmedCount,suspectedCount,curedCount,deadCount,comment]
+            # logger.info(global_row)
+            global_rows.append(global_row)            
             if 'cities' in record:
                 citys = record['cities']
                 # logger.info('citysTable={}'.format(citys))
@@ -197,6 +182,14 @@ def DBSave(records,**extra):
                         cityRow.append(curedCount)
                         cityRow.append(deadCount)
                         cityRow.append(comment)
+                        if cityName:
+                            province_row = [sd,countryName,provinceName,cityName,currentConfirmedCount,confirmedCount,suspectedCount,curedCount,deadCount,comment]
+                            province_rows.append(province_row)
+                            # logger.info(province_row)
+                        else:
+                            country_row = [sd,countryName,provinceName,currentConfirmedCount,confirmedCount,suspectedCount,curedCount,deadCount,comment]
+                            country_rows.append(country_row)
+                            logger.info(country_row)
                         # logger.info('cityRow={}'.format(cityRow))
                         if cityRow:
                             rows.append(cityRow)
@@ -205,18 +198,44 @@ def DBSave(records,**extra):
         else:
             continue     
         if row:
-            # logger.info('row={}\n'.format(row))
             rows.append(row)
-            # psql.execute(SQL,row)
-            # psql.cursor.execute(SQL,row)
-            # psql.conn.commit()
-    # if rows:
-    #     logger.info('整理后第一条数据:\n%r\n',row[0])
-    # logger.info('有%r条记录等待存入数据库',len(rows))
-    # for row in rows:
-    #     logger.info(row)
-    psql.cursor.executemany(SQL,rows)
-    psql.conn.commit()
+    logger.info('global_rows counts %r',len(global_rows))
+    logger.info('country_rows counts %r',len(country_rows))
+    logger.info('province_rows count %r',len(province_rows))
+    logger.info('rows count %r',len(rows))
+    if global_rows:
+        name = 'global'
+        columns = ["update","continent","country","confirmation","totalConfirmation","suspect","cure","dead","remark"]
+        coreColumns = ["confirmation","totalConfirmation","suspect","cure","dead","remark"]
+        data={
+            'table':name,
+            'columns':columns,
+            'coreColumns':coreColumns,
+            'rows':global_rows
+        }
+        save(data)
+    if country_rows:
+        name = 'global'
+        columns = ["update","country","province","confirmation","totalConfirmation","suspect","cure","dead","remark"]
+        coreColumns = ["confirmation","totalConfirmation","suspect","cure","dead","remark"]
+        data={
+            'table':name,
+            'columns':columns,
+            'coreColumns':coreColumns,
+            'rows':country_rows
+        }
+        save(data)        
+    if province_rows:
+        name = 'province'
+        columns = ["update","country","province","city","confirmation","totalConfirmation","suspect","cure","dead","remark"]
+        coreColumns = ["confirmation","totalConfirmation","suspect","cure","dead","remark"]
+        data={
+            'table':name,
+            'columns':columns,
+            'coreColumns':coreColumns,
+            'rows':province_rows
+        }
+        save(data)        
     # psql.cursor.copy_from(f, "NCP",columns=fieldnames,sep=',', null='\\N', size=16384)
     # filename = 'NCP.csv'
     # with open(filename, 'w', newline='') as csvfile:
@@ -225,7 +244,6 @@ def DBSave(records,**extra):
     #     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
     #     writer.writeheader()
     #     writer.writerows(records)
-
     # psql.cursor.copy_from(csvfile, 'ncp',columns=fieldnames,sep=',', size=16384)
 
 def save(record):
@@ -239,7 +257,7 @@ def save(record):
     SQL = f"""insert into "{table}" ("{'","'.join(columns)}") values ({','.join(['%s'] * len(columns))}) """
     SQL_snippet = SQL_snippet.rstrip(',')+';'
     SQL += SQL_snippet
-    logger.info('sql in save,sql:\n%r',SQL)    
+    # logger.info('sql in save,sql:\n%r',SQL)    
     dbname = 'COVID-19'
     user='operator'
     password='5302469'
