@@ -228,6 +228,27 @@ def DBSave(records,**extra):
 
     # psql.cursor.copy_from(csvfile, 'ncp',columns=fieldnames,sep=',', size=16384)
 
+def save(record):
+    table = record['table']
+    columns = record['columns'] 
+    coreColumns = record['coreColumns']
+    rows = record['rows']
+    SQL_snippet =f'ON CONFLICT ON CONSTRAINT {table}_unique DO UPDATE SET '
+    for col in coreColumns:
+       SQL_snippet += f' "{col}" = EXCLUDED."{col}",'
+    SQL = f"""insert into "{table}" ("{'","'.join(columns)}") values ({','.join(['%s'] * len(columns))}) """
+    SQL_snippet = SQL_snippet.rstrip(',')+';'
+    SQL += SQL_snippet
+    logger.info('sql in save,sql:\n%r',SQL)    
+    dbname = 'COVID-19'
+    user='operator'
+    password='5302469'
+    host='localhost'
+    port='2012'
+    psql = MyPostgreSQL(dbname=dbname,user=user,password=password,host=host,port=port)    
+    psql.cursor.executemany(SQL,rows)
+    psql.conn.commit()    
+
 def crawl_NCP(url,params,timeout):
     response = requests.get(url,headers=headers,params=params,timeout=timeout)
     # json_reads = json.loads(response.text)
@@ -436,27 +457,17 @@ def crawl_NCP_qq():
                             # logger.info('xx[total][nowConfirm]=%r',xx['total']['nowConfirm'])
                         
 
-    name = 'golbal'
-    constraint = 'global_unique'
+    name = 'global'
     columns = ["update","continent","country","confirmation","totalConfirmation","suspect","cure","dead","remark"]
-    SQL = f"""
-        insert into "{name}" ("{'","'.join(columns)}") values ({','.join(['%s'] * len(columns))})    
-        ON CONFLICT ON CONSTRAINT "{constraint}" 
-        DO UPDATE SET 
-        "confirmation" = EXCLUDED."confirmation",
-        "totalConfirmation" = EXCLUDED."totalConfirmation",
-        "suspect"= EXCLUDED."suspect",
-        "cure" = EXCLUDED."cure",
-        "dead" = EXCLUDED."dead",
-        "remark" = EXCLUDED."remark"               
-	;        
-    """
-    logger.info('keys=%r',data.keys())
-    # logger.info('data=%r\n',data)
-    # for x in totoalProvinceRecords:
-    #     logger.info(x)        
-    psql.cursor.executemany(SQL,rows)
-    psql.conn.commit()
+    coreColumns = ["confirmation","totalConfirmation","suspect","cure","dead","remark"]
+    data={
+        'table':name,
+        'columns':columns,
+        'coreColumns':coreColumns,
+        'rows':rows
+    }
+    save(data)      
+
 
     rows=[]    
     for record in totoalProvinceRecords:
@@ -473,25 +484,17 @@ def crawl_NCP_qq():
         row.append(record['dead'])
         row.append(record['remark'])
         rows.append(row)
-    logger.info('totoalProvinceRecords 共有%r条记录。',len(totoalProvinceRecords))
-    logger.info('totalCityRecords 共有%r条记录。',len(totalCityRecords))
     name = "country"
     constraint='country_unique'
     columns = ["update","country","province","confirmation","totalConfirmation","suspect","cure","dead","remark"]
-    SQL = f"""
-        insert into "{name}" ("{'","'.join(columns)}") values ({','.join(['%s'] * len(columns))})    
-        ON CONFLICT ON CONSTRAINT "{constraint}" 
-        DO UPDATE SET 
-        "confirmation" = EXCLUDED."confirmation",
-        "totalConfirmation" = EXCLUDED."totalConfirmation",
-        "suspect"= EXCLUDED."suspect",
-        "cure" = EXCLUDED."cure",
-        "dead" = EXCLUDED."dead",
-        "remark" = EXCLUDED."remark"               
-    ;        
-    """
-    psql.cursor.executemany(SQL,rows)
-    psql.conn.commit()
+    coreColumns = ["confirmation","totalConfirmation","suspect","cure","dead","remark"]
+    data={
+        'table':name,
+        'columns':columns,
+        'coreColumns':coreColumns,
+        'rows':rows
+    }
+    save(data)
 
     rows=[]    
     for record in totalCityRecords:
@@ -514,22 +517,18 @@ def crawl_NCP_qq():
     name = "province"
     constraint='province_unique'
     columns = ["update","country","province","city","confirmation","totalConfirmation","suspect","cure","dead","remark"]
-    SQL = f"""
-        insert into "{name}" ("{'","'.join(columns)}") values ({','.join(['%s'] * len(columns))})    
-        ON CONFLICT ON CONSTRAINT "{constraint}" 
-        DO UPDATE SET 
-        "confirmation" = EXCLUDED."confirmation",
-        "totalConfirmation" = EXCLUDED."totalConfirmation",
-        "suspect"= EXCLUDED."suspect",
-        "cure" = EXCLUDED."cure",
-        "dead" = EXCLUDED."dead",
-        "remark" = EXCLUDED."remark"               
-    ;        
-    """
-    # logger.info(SQL)
-    # logger.info(rows)
-    psql.cursor.executemany(SQL,rows)
-    psql.conn.commit()         
+    coreColumns = ["confirmation","totalConfirmation","suspect","cure","dead","remark"]
+    data={
+        'table':name,
+        'columns':columns,
+        'coreColumns':coreColumns,
+        'rows':rows
+    }
+    save(data)
+   
+    logger.info('totoalProvinceRecords 共有%r条记录。',len(totoalProvinceRecords))
+    logger.info('totalCityRecords 共有%r条记录。',len(totalCityRecords))    
+
 
 def DXY_csv_to_database(filename):
     # logger.info("filename is %r",filename)
