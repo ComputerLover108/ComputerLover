@@ -38,6 +38,7 @@ user_agent_list = [
     'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:68.9) Gecko/20100101 Goanna/4.4 Firefox/68.9 PaleMoon/28.8.4'
 ]
 headers = {'User-Agent': random.choice(user_agent_list)}
+nameMap = dict()
 
 class MyPostgreSQL:
     def __init__(self,dbname,user,password,host,port):
@@ -98,7 +99,14 @@ def DBSave(records,**extra):
             provinceName = record["provinceName"] if "provinceName" in record else None
             cityName = record["cityName"] if "cityName" in record else None
             comment = record['comment'] if "comment" in record else None
-            
+
+            if "continentName" in record and "continentEnglishName" in record:
+                nameMap[continentName] = record["continentEnglishName"]
+            if "countryName" in record and "countryEnglishName" in record:
+                nameMap[countryName] = record["countryEnglishName"]
+            if "cityName" in record and "cityEnglishName" in record:
+                nameMap[cityName] = record["cityEnglishName"] 
+
             continentName = continentName if continentName else ''
             countryName = countryName if countryName != continentName else '' 
             provinceName = provinceName if provinceName != countryName else ''
@@ -125,7 +133,7 @@ def DBSave(records,**extra):
             # 2月9日以前没有当前确诊记录，只有确诊记录。
             # logger.info('%r<%r=%r',d,datetime.datetime(2020,2,9),d<datetime.datetime(2020,2,9))
             if d <= datetime.datetime(2020,2,9,0,0):
-                logger.info('update=%r,currentConfirmedCount=%r,confirmedCount=%r,suspectedCount=%r,curedCount=%r,deadCount=%r',d,currentConfirmedCount,confirmedCount,suspectedCount,curedCount,deadCount)                
+                # logger.info('update=%r,currentConfirmedCount=%r,confirmedCount=%r,suspectedCount=%r,curedCount=%r,deadCount=%r',d,currentConfirmedCount,confirmedCount,suspectedCount,curedCount,deadCount)                
                 currentConfirmedCount = confirmedCount if currentConfirmedCount==0 else currentConfirmedCount
 
             row.append(updateTime)
@@ -203,6 +211,10 @@ def DBSave(records,**extra):
     logger.info('country_rows counts %r',len(country_rows))
     logger.info('province_rows count %r',len(province_rows))
     logger.info('rows count %r',len(rows))
+    # logger.info('nameMap = %r',nameMap)
+    filename = 'nameMap.json'
+    with open(filename,'w') as f:
+        json.dump(nameMap,f,ensure_ascii=False,indent=4,sort_keys=True)    
     if global_rows:
         name = 'global'
         columns = ["update","continent","country","confirmation","totalConfirmation","suspect","cure","dead","remark"]
@@ -271,17 +283,17 @@ def save(record):
 def crawl_NCP(url,params,timeout):
     response = requests.get(url,headers=headers,params=params,timeout=timeout)
     # json_reads = json.loads(response.text)
-    logger.info('response.status_code=%r',response.status_code)
+    # logger.info('response.status_code=%r',response.status_code)
     if response.status_code==200:
         json_reads = response.json()
         # logger.info('json_reads=%r',json_reads)
         records=json_reads["results"]
         if url == "https://lab.isaaclin.cn/nCoV/api/area" :
-            logger.info('crawl NCP data')
+            logger.info('crawl NCP data,params=%r',params)
             filename = 'NCP.json'
             DBSave(records)
         if url == "https://lab.isaaclin.cn/nCoV/api/overall" :
-            logger.info('crawl china NCP data')
+            logger.info('crawl china NCP data,params=%r',params)
             filename = 'NCP_china.json'
             extra = {'continentName':'亚洲','countryName':'中国'}
             DBSave(records,**extra)
@@ -688,39 +700,15 @@ if __name__ == '__main__':
     port='2012'
     psql = MyPostgreSQL(dbname=dbname,user=user,password=password,host=host,port=port)    
     if args.all:
-        params['latest'] = 0
-        SQL = 'DROP TABLE IF EXISTS "NCP";'
-        psql.execute(SQL)
-        SQL = '''
-        CREATE TABLE IF NOT EXISTS "NCP" (
-            id                      serial,
-            "update"                date not null,
-            "continentName"         varchar,
-            "countryName"           varchar,
-            "provinceName"          varchar,
-            "cityName"              varchar,        
-            "currentConfirmedCount" integer,
-            "confirmedCount"        integer,
-            "suspectedCount"        integer,
-            "curedCount"            integer,
-            "deadCount"             integer,
-            "comment"               varchar      
-        );
-        '''
-        # logger.info(SQL)
-        psql.execute(SQL)
-        SQL = '''
-            ALTER TABLE "NCP" 
-            ADD CONSTRAINT ncp_unique UNIQUE(
-                "update",
-                "continentName",
-                "countryName",
-                "provinceName",
-                "cityName"            
-            );    
-        '''
-        # logger.info(SQL)
-        psql.execute(SQL)           
+        filename = 'DXYArea-TimeSeries.json'
+        with open(filename,'r',encoding='utf-8') as f:
+            records=json.load(f)
+            DBSave(records)
+        filename = 'DXYOverall-TimeSeries.json'                   
+        with open(filename,'r',encoding='utf-8') as f:
+            records=json.load(f)
+            extra = {'continentName':'亚洲','countryName':'中国'}
+            DBSave(records,**extra)        
     else:
         params['latest'] = 1
     if args.cvs:
