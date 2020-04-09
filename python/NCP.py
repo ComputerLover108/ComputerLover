@@ -261,7 +261,8 @@ def save(record):
     dbname = 'COVID-19'
     user='operator'
     password='5302469'
-    host='localhost'
+    # host='localhost'
+    host='127.0.0.1'
     port='2012'
     psql = MyPostgreSQL(dbname=dbname,user=user,password=password,host=host,port=port)    
     psql.cursor.executemany(SQL,rows)
@@ -336,7 +337,7 @@ def crawl_NCP_qq():
     # params['_'] = '1581070969708'
     params['_'] = int(time.time()*1000)
     # url = 'https://view.inews.qq.com/g2/getOnsInfo?name=disease_h5&callback=jQuery341001657575837432268_1581070969707&_=1581070969708'
-    url='https://view.inews.qq.com/g2/getOnsInfo?name=disease_h5'
+    # url='https://view.inews.qq.com/g2/getOnsInfo?name=disease_h5'
     response = requests.get(url,headers=headers,params=params,timeout=timeout)
     if response.status_code==200:
         content = response.text
@@ -381,7 +382,11 @@ def crawl_NCP_qq():
     data.update(other_json)
     # logger.info('chinaDayList=%r',data['chinaDayList'])
     # logger.info('foreignList=%r',data['foreignList'])
-    # logger.info('areaTree=%r',data['areaTree'])     
+    # logger.info('areaTree=%r',data['areaTree'])
+    filename = 'NCP_QQ.json'
+    json_str = json.dumps(data, indent=4)
+    with open(filename, 'w') as json_file:
+        json_file.write(json_str)             
     if data:
         records = data['chinaDayList']
         for record in records:
@@ -678,7 +683,8 @@ if __name__ == '__main__':
     dbname = 'COVID-19'
     user='operator'
     password='5302469'
-    host='localhost'
+    # host='localhost'
+    host='127.0.0.1'
     port='2012'
     psql = MyPostgreSQL(dbname=dbname,user=user,password=password,host=host,port=port)    
     if args.all:
