@@ -71,10 +71,13 @@ def page_crawling(url,params,i):
         time.sleep(30)
     except ReadTimeout:
         logger.info('%r timeout',url)
+        return
     except HTTPError:
         logger.info('%r httperror',url)
+        return
     except RequestException:
-        logger.info('%r reqerror',url)    
+        logger.info('%r reqerror',url) 
+        return   
 
 def crawling(url):
     pattern='<span id="subject_tpc">(?P<title>.*)</span>'
@@ -111,10 +114,13 @@ def crawling(url):
         time.sleep(timedelay)
     except ReadTimeout:
         logger.info('%r timeout',url)
+        return
     except HTTPError:
         logger.info('%r httperror',url)
+        return
     except RequestException:
         logger.info('%r reqerror',url)    
+        return
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog = 'story_crawl',description = '小说爬取')
